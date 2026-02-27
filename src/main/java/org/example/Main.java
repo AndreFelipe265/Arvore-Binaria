@@ -1,5 +1,6 @@
 package org.example;
 
+import javax.swing.*;
 import java.util.Scanner;
 
 public class Main {
@@ -9,7 +10,7 @@ public class Main {
 
         while(true){
             System.out.println("\n 1 - Escrever um número  ");
-            System.out.println(" 2 - Exibir ordem ");
+            System.out.println(" 2 - Exibir árvore ");
             System.out.println(" 0 - Sair  ");
             System.out.print(" Escolha uma opção:  ");
             long i = sc.nextLong();
@@ -23,8 +24,14 @@ public class Main {
                 arvore.inserir(num);
                 System.out.println("Inserido com sucesso!!");
             } else if(i == 2){
+                JFrame frame = new JFrame("Visualização da Árvore");
+                TreePanel panel = new TreePanel(arvore.root);
 
-                arvore.exibir();
+                frame.add(panel);
+                frame.setSize(800, 600);
+                frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                frame.setLocationRelativeTo(null);
+                frame.setVisible(true);
 
             }else{
                 System.out.println("Número invalido");
