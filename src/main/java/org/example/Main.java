@@ -10,7 +10,8 @@ public class Main {
 
         while(true){
             System.out.println("\n 1 - Escrever um número  ");
-            System.out.println(" 2 - Exibir árvore ");
+            System.out.println(" 2 - Exibir árvore (Swing) ");
+            System.out.println(" 3 - Exibir Ordem (Console) ");
             System.out.println(" 0 - Sair  ");
             System.out.print(" Escolha uma opção:  ");
             long i = sc.nextLong();
@@ -33,7 +34,9 @@ public class Main {
                 frame.setLocationRelativeTo(null);
                 frame.setVisible(true);
 
-            }else{
+            } else if (i == 3) {
+                arvore.exibir();
+            } else{
                 System.out.println("Número invalido");
             }
 
