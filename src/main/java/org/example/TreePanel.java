@@ -9,9 +9,10 @@ public class TreePanel extends JPanel {
     private final int NODE_RADIUS = 25;
     private final int LEVEL_HEIGHT = 80;
 
+
     public TreePanel(No root) {
         this.root = root;
-        setBackground(Color.WHITE);
+        setBackground(Color.GRAY);
     }
 
     @Override
@@ -19,11 +20,21 @@ public class TreePanel extends JPanel {
         super.paintComponent(g);
 
         if (root != null) {
+
+            int altura = calcularAltura(root);
+
+
+            int largura = (int) Math.pow(2, altura) * 40;
+            int alturaPainel = altura * LEVEL_HEIGHT + 100;
+
+            setPreferredSize(new Dimension(largura, alturaPainel));
+            revalidate();
+
             Graphics2D g2 = (Graphics2D) g;
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                     RenderingHints.VALUE_ANTIALIAS_ON);
 
-            desenharArvore(g2, root, getWidth() / 2, 60, getWidth() / 4);
+            desenharArvore(g2, root, largura / 2, 60, largura / 4);
         }
     }
 
@@ -61,5 +72,14 @@ public class TreePanel extends JPanel {
         g.drawString(texto,
                 x - textWidth / 2,
                 y + textHeight / 4);
+    }
+
+    private int calcularAltura(No no) {
+        if (no == null) return 0;
+        return 1 + Math.max(calcularAltura(no.esq), calcularAltura(no.dir));
+    }
+
+    public void setRoot(No root) {
+        this.root = root;
     }
 }

@@ -48,6 +48,11 @@ public class Tree {
 
             while(true){
                 anterior = atual;
+
+                if (v.equals(atual.item)) {
+                    throw new RuntimeException("Numéro já existe na árvore: " + v);
+                }
+
                 if(v < atual.item){
                     atual = atual.esq;
                     if(atual == null){
