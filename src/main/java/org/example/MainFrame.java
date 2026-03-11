@@ -24,10 +24,16 @@ public class MainFrame extends JFrame {
 
         inputField = new JTextField(10);
         JButton insertButton = new JButton("Inserir");
+        JButton LNRButton = new JButton("Exibir Caminho LNR");
+        JButton LRNButton = new JButton("Exibir Caminho LRN");
+        JButton NLRButton = new JButton("Exibir Caminho NLR");
 
         controlPanel.add(new JLabel("Número: "));
         controlPanel.add(inputField);
         controlPanel.add(insertButton);
+        controlPanel.add(LNRButton);
+        controlPanel.add(LRNButton);
+        controlPanel.add(NLRButton);
 
         add(controlPanel, BorderLayout.NORTH);
 
@@ -42,6 +48,9 @@ public class MainFrame extends JFrame {
         add(new JScrollPane(outputArea), BorderLayout.SOUTH);
 
         insertButton.addActionListener(e -> inserirNumero());
+        LNRButton.addActionListener(e -> exibirCaminhoLNR());
+        LRNButton.addActionListener(e -> exibirCaminhoLRN());
+        NLRButton.addActionListener(e -> exibirCaminhoNLR());
 
     }
 
@@ -81,6 +90,21 @@ public class MainFrame extends JFrame {
         } catch (Exception exception) {
             JOptionPane.showMessageDialog(this, "Erro ao inserir valor: " + exception.getMessage());
         }
+    }
+
+    private void exibirCaminhoLNR() {
+        String resposta = arvore.caminhoLNR(arvore.root);
+        JOptionPane.showMessageDialog(this, "Caminho LNR:\n" + resposta);
+    }
+
+    private void exibirCaminhoLRN() {
+        String resposta = arvore.caminhoLRN(arvore.root);
+        JOptionPane.showMessageDialog(this, "Caminho LRN:\n" + resposta);
+    }
+
+    private void exibirCaminhoNLR() {
+        String resposta = arvore.caminhoNLR(arvore.root);
+        JOptionPane.showMessageDialog(this, "Caminho NLR:\n" + resposta);
     }
 
 }

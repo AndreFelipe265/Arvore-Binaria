@@ -1,5 +1,8 @@
 package org.example;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Tree {
     public No root;
 
@@ -33,6 +36,42 @@ public class Tree {
             System.out.print(atual.item + " ");
             inOrder(atual.dir);
         }
+    }
+
+    public String caminhoLNR(No raiz) {
+        StringBuilder caminho = new StringBuilder();
+
+        if (raiz != null) {
+            caminho.append(caminhoLNR(raiz.esq));
+            caminho.append(raiz.item).append(" ");
+            caminho.append(caminhoLNR(raiz.dir));
+        }
+
+        return caminho.toString();
+    }
+
+    public String caminhoNLR(No raiz) {
+        StringBuilder caminho = new StringBuilder();
+
+        if (raiz != null) {
+            caminho.append(raiz.item).append(" ");
+            caminho.append(caminhoNLR(raiz.esq));
+            caminho.append(caminhoNLR(raiz.dir));
+        }
+
+        return caminho.toString();
+    }
+
+    public String caminhoLRN(No raiz) {
+        StringBuilder caminho = new StringBuilder();
+
+        if (raiz != null) {
+            caminho.append(caminhoLRN(raiz.esq));
+            caminho.append(caminhoLRN(raiz.dir));
+            caminho.append(raiz.item).append(" ");
+        }
+
+        return caminho.toString();
     }
 
     public void inserir(Long v){
