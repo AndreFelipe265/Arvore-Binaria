@@ -1,8 +1,5 @@
 package org.example;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class Tree {
     public No root;
 
@@ -21,7 +18,7 @@ public class Tree {
             exibirArvore(atual.dir, nivel + 1);
 
             for (int i = 0; i < nivel; i++) {
-                System.out.print("    "); // 4 espaços por nível
+                System.out.print("    ");
             }
 
             System.out.println(atual.item);
@@ -74,33 +71,34 @@ public class Tree {
         return caminho.toString();
     }
 
-    public void inserir(Long v){
+    public void inserir(Long v) {
         No novo = new No();
         novo.item = v;
         novo.dir = null;
         novo.esq = null;
 
-        if(root == null) root = novo;
-        else{
+        if (root == null) {
+            root = novo;
+        } else {
             No atual = root;
             No anterior;
 
-            while(true){
+            while (true) {
                 anterior = atual;
 
                 if (v.equals(atual.item)) {
-                    throw new RuntimeException("Numéro já existe na árvore: " + v);
+                    throw new RuntimeException("Número já existe na árvore: " + v);
                 }
 
-                if(v < atual.item){
+                if (v < atual.item) {
                     atual = atual.esq;
-                    if(atual == null){
+                    if (atual == null) {
                         anterior.esq = novo;
                         return;
                     }
-                }else{
+                } else {
                     atual = atual.dir;
-                    if(atual == null){
+                    if (atual == null) {
                         anterior.dir = novo;
                         return;
                     }
@@ -174,7 +172,9 @@ public class Tree {
     private boolean isCompleta(No no, int index, int numNos) {
         if (no == null) return true;
         if (index >= numNos) return false;
-        return isCompleta(no.esq, 2 * index + 1, numNos) && isCompleta(no.dir, 2 * index + 2, numNos);
+
+        return isCompleta(no.esq, 2 * index + 1, numNos)
+                && isCompleta(no.dir, 2 * index + 2, numNos);
     }
 
     private boolean isIncompleta(No no) {
@@ -198,9 +198,10 @@ public class Tree {
         if (cheia) return "Cheia";
         if (completa) return "Completa";
         if (incompleta) return "Incompleta";
-        return "Árvore binária comum ou desconhecida";
+        return "Árvore binária comum";
+    }
+
+    public void limpar() {
+        root = null;
     }
 }
-
-
-
