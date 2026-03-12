@@ -12,7 +12,7 @@ public class TreePanel extends JPanel {
 
     public TreePanel(No root) {
         this.root = root;
-        setBackground(Color.GRAY);
+        setBackground(new Color(43,43,43));
     }
 
     @Override
@@ -44,18 +44,19 @@ public class TreePanel extends JPanel {
 
         int childY = y + LEVEL_HEIGHT;
 
-        // ---- DESENHA LINHAS PRIMEIRO ----
+        g.setColor(Color.WHITE);
         if (no.esq != null) {
             g.drawLine(x, y, x - distanciaX, childY);
             desenharArvore(g, no.esq, x - distanciaX, childY, distanciaX / 2);
         }
 
+        g.setColor(Color.WHITE);
         if (no.dir != null) {
             g.drawLine(x, y, x + distanciaX, childY);
             desenharArvore(g, no.dir, x + distanciaX, childY, distanciaX / 2);
         }
 
-        g.setColor(new Color(70, 130, 180)); // azul bonito
+        g.setColor(new Color(122, 12, 166)); // roxo
         g.fillOval(x - NODE_RADIUS, y - NODE_RADIUS,
                 NODE_RADIUS * 2, NODE_RADIUS * 2);
 
@@ -82,4 +83,5 @@ public class TreePanel extends JPanel {
     public void setRoot(No root) {
         this.root = root;
     }
+
 }

@@ -1,12 +1,25 @@
 package org.example;
 
 import javax.swing.*;
-import java.util.Scanner;
+import java.awt.*;
+import java.util.Enumeration;
 
 public class Main {
     public static void main(String[] args) {
+        try {
+            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         SwingUtilities.invokeLater(() -> {
             new MainFrame().setVisible(true);
         });
     }
 }
+

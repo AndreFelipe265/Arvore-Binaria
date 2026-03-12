@@ -20,7 +20,10 @@ public class MainFrame extends JFrame {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
+        getContentPane().setBackground(new Color(30,30,30));
+
         JPanel controlPanel = new JPanel();
+        controlPanel.setBackground(new Color(30,30,30));
 
         inputField = new JTextField(10);
         JButton insertButton = new JButton("Inserir");
@@ -29,7 +32,16 @@ public class MainFrame extends JFrame {
         JButton NLRButton = new JButton("Exibir Caminho NLR");
         JButton analisarNoButton = new JButton("Analisar Nó");
 
-        controlPanel.add(new JLabel("Número: "));
+        insertButton.setBackground(Color.WHITE);
+        LNRButton.setBackground(Color.WHITE);
+        LRNButton.setBackground(Color.WHITE);
+        NLRButton.setBackground(Color.WHITE);
+        analisarNoButton.setBackground(Color.WHITE);
+
+        JLabel labelNumero = new JLabel("Número: ");
+        labelNumero.setForeground(Color.WHITE);
+        controlPanel.add(labelNumero);
+
         controlPanel.add(inputField);
         controlPanel.add(insertButton);
         controlPanel.add(LNRButton);
@@ -47,7 +59,15 @@ public class MainFrame extends JFrame {
 
         outputArea = new JTextArea(5, 30);
         outputArea.setEditable(false);
-        add(new JScrollPane(outputArea), BorderLayout.SOUTH);
+
+        outputArea.setBackground(new Color(43,43,43));
+        outputArea.setForeground(Color.WHITE);
+        outputArea.setCaretColor(Color.WHITE);
+
+        JScrollPane outputScroll = new JScrollPane(outputArea);
+        outputScroll.getViewport().setBackground(new Color(43,43,43));
+
+        add(outputScroll, BorderLayout.SOUTH);
 
         insertButton.addActionListener(e -> inserirNumero());
         inputField.addActionListener(e -> inserirNumero()); // ENTER chama inserir
@@ -136,4 +156,5 @@ public class MainFrame extends JFrame {
             JOptionPane.showMessageDialog(this, "Digite um número válido!");
         }
     }
+
 }
