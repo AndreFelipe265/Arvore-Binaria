@@ -27,6 +27,7 @@ public class MainFrame extends JFrame {
         JButton LNRButton = new JButton("Exibir Caminho LNR");
         JButton LRNButton = new JButton("Exibir Caminho LRN");
         JButton NLRButton = new JButton("Exibir Caminho NLR");
+        JButton analisarNoButton = new JButton("Analisar Nó");
 
         controlPanel.add(new JLabel("Número: "));
         controlPanel.add(inputField);
@@ -34,6 +35,7 @@ public class MainFrame extends JFrame {
         controlPanel.add(LNRButton);
         controlPanel.add(LRNButton);
         controlPanel.add(NLRButton);
+        controlPanel.add(analisarNoButton);
 
         add(controlPanel, BorderLayout.NORTH);
 
@@ -48,9 +50,12 @@ public class MainFrame extends JFrame {
         add(new JScrollPane(outputArea), BorderLayout.SOUTH);
 
         insertButton.addActionListener(e -> inserirNumero());
+        inputField.addActionListener(e -> inserirNumero()); // ENTER chama inserir
+
         LNRButton.addActionListener(e -> exibirCaminhoLNR());
         LRNButton.addActionListener(e -> exibirCaminhoLRN());
         NLRButton.addActionListener(e -> exibirCaminhoNLR());
+        analisarNoButton.addActionListener(e -> analisarNo());
 
     }
 
@@ -107,4 +112,27 @@ public class MainFrame extends JFrame {
         JOptionPane.showMessageDialog(this, "Caminho NLR:\n" + resposta);
     }
 
+    private void analisarNo() {
+        try {
+            Long valor = Long.parseLong(inputField.getText());
+
+            No no = arvore.buscar(valor);
+
+            if (no == null) {
+                JOptionPane.showMessageDialog(this, "Nó não encontrado!");
+                return;
+            }
+
+            int profundidade = arvore.calcProfundidade(valor);
+            int altura = arvore.calcAltura(no);
+
+            JOptionPane.showMessageDialog(this,
+                    "Valor do nó: " + valor +
+                            "\nProfundidade: " + profundidade +
+                            "\nAltura: " + altura);
+
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Digite um número válido!");
+        }
+    }
 }

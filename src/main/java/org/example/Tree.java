@@ -108,4 +108,54 @@ public class Tree {
             }
         }
     }
+
+    public No buscar(Long valor) {
+        No atual = root;
+
+        while (atual != null) {
+            if (valor.equals(atual.item)) {
+                return atual;
+            }
+
+            if (valor < atual.item) {
+                atual = atual.esq;
+            } else {
+                atual = atual.dir;
+            }
+        }
+
+        return null;
+    }
+
+    public int calcProfundidade(Long valor) {
+        No atual = root;
+        int profundidade = 0;
+
+        while (atual != null) {
+            if (valor.equals(atual.item)) {
+                return profundidade;
+            }
+
+            if (valor < atual.item) {
+                atual = atual.esq;
+            } else {
+                atual = atual.dir;
+            }
+
+            profundidade++;
+        }
+
+        return -1;
+    }
+
+    public int calcAltura(No no) {
+        if (no == null) return -1;
+
+        int alturaEsq = calcAltura(no.esq);
+        int alturaDir = calcAltura(no.dir);
+
+        return 1 + Math.max(alturaEsq, alturaDir);
+    }
+
+
 }
