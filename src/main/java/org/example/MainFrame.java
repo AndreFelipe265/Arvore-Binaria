@@ -90,6 +90,7 @@ public class MainFrame extends JFrame {
             );
 
             inputField.setText("");
+            inputField.requestFocus();
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Digite um número válido!");
         } catch (Exception exception) {
