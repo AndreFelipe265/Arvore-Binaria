@@ -157,4 +157,50 @@ public class Tree {
         return 1 + Math.max(alturaEsq, alturaDir);
     }
 
+    public int contarNos(No no) {
+        if (no == null) return 0;
+        return 1 + contarNos(no.esq) + contarNos(no.dir);
+    }
+
+    private boolean isCheia(No no) {
+        if (no == null) return true;
+        if (no.esq == null && no.dir == null) return true;
+        if (no.esq != null && no.dir != null) {
+            return isCheia(no.esq) && isCheia(no.dir);
+        }
+        return false;
+    }
+
+    private boolean isCompleta(No no, int index, int numNos) {
+        if (no == null) return true;
+        if (index >= numNos) return false;
+        return isCompleta(no.esq, 2 * index + 1, numNos) && isCompleta(no.dir, 2 * index + 2, numNos);
+    }
+
+    private boolean isIncompleta(No no) {
+        if (no == null) return true;
+        if (no.esq != null && no.dir != null) return false;
+        return isIncompleta(no.esq) && isIncompleta(no.dir);
+    }
+
+    public String obterTipoArvore() {
+        if (root == null) return "Árvore Vazia";
+
+        int numNos = contarNos(root);
+        int altura = calcAltura(root);
+
+        boolean cheia = isCheia(root);
+        boolean completa = isCompleta(root, 0, numNos);
+        boolean perfeita = (numNos == (Math.pow(2, altura + 1) - 1));
+        boolean incompleta = isIncompleta(root);
+
+        if (perfeita) return "Perfeita";
+        if (cheia) return "Cheia";
+        if (completa) return "Completa";
+        if (incompleta) return "Incompleta";
+        return "Árvore binária comum ou desconhecida";
+    }
 }
+
+
+
