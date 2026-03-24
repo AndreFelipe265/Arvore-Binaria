@@ -36,11 +36,13 @@ public class MainFrame extends JFrame {
         JButton insertButton = new JButton("Inserir");
         JButton caminhoButton = new JButton("Exibir Caminho");
         JButton analisarNoButton = new JButton("Analisar Nó");
+        JButton carregarButton = new JButton("Carregar Árvore");
         JButton resetButton = new JButton("Resetar Árvore");
 
         insertButton.setBackground(Color.WHITE);
         caminhoButton.setBackground(Color.WHITE);
         analisarNoButton.setBackground(Color.WHITE);
+        carregarButton.setBackground(Color.WHITE);
         resetButton.setBackground(Color.WHITE);
 
         JLabel labelNumero = new JLabel("Número: ");
@@ -52,6 +54,7 @@ public class MainFrame extends JFrame {
 
         controlPanel.add(caminhoButton);
         controlPanel.add(analisarNoButton);
+        controlPanel.add(carregarButton);
         controlPanel.add(resetButton);
 
         add(controlPanel, BorderLayout.NORTH);
@@ -76,7 +79,39 @@ public class MainFrame extends JFrame {
         caminhoButton.addActionListener(e -> abrirMenuCaminhos());
 
         analisarNoButton.addActionListener(e -> analisarNo());
+        carregarButton.addActionListener(e -> carregarArvore());
         resetButton.addActionListener(e -> resetarArvore());
+    }
+
+    private void carregarArvore() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Selecionar arquivo de árvore (.txt)");
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Arquivos de Texto (.txt)", "txt"));
+        int escolha = fileChooser.showOpenDialog(this);
+
+        if (escolha == JFileChooser.APPROVE_OPTION) {
+            File arquivo = fileChooser.getSelectedFile();
+
+            try {
+                java.util.Scanner scanner = new java.util.Scanner(arquivo);
+                StringBuilder conteudo = new StringBuilder();
+                while (scanner.hasNextLine()) {
+                    conteudo.append(scanner.nextLine()).append("\n");
+                }
+                scanner.close();
+
+                arvore.carregarDeParenteses(conteudo.toString());
+                panel.setRoot(arvore.root);
+                panel.revalidate();
+                panel.repaint();
+
+                outputArea.setText("Árvore carregada com sucesso do arquivo: " + arquivo.getName());
+                outputArea.append("\nTipo da árvore: " + arvore.obterTipoArvore());
+
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Erro ao carregar arquivo: " + e.getMessage());
+            }
+        }
     }
 
     private void inserirNumero() {
@@ -370,5 +405,4 @@ public class MainFrame extends JFrame {
             return false;
         }
     }
-
 }
