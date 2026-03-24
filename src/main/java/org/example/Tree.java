@@ -204,4 +204,20 @@ public class Tree {
     public void limpar() {
         root = null;
     }
+
+    public String gerarParenteses() {
+        return gerarParenteses(root);
+    }
+
+    private String gerarParenteses(No no) {
+        if (no == null) {
+            return "()";
+        }
+
+        return "("
+                + no.item + " "
+                + gerarParenteses(no.esq) + " "
+                + gerarParenteses(no.dir)
+                + ")";
+    }
 }

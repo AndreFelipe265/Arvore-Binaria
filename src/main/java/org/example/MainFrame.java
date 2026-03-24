@@ -6,6 +6,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class MainFrame extends JFrame {
 
@@ -150,15 +152,18 @@ public class MainFrame extends JFrame {
 
             int profundidade = arvore.calcProfundidade(valor);
             int altura = arvore.calcAltura(no);
+            int nivel = profundidade + 1;
 
             JOptionPane.showMessageDialog(this,
                     "Valor do nó: " + valor +
-                    "\nProfundidade: " + profundidade +
-                    "\nAltura: " + altura);
+                            "\nProfundidade: " + profundidade +
+                            "\nNível: " + nivel +
+                            "\nAltura: " + altura);
 
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Digite um número válido!");
         }
+
     }
 
     private void resetarArvore() {
@@ -179,11 +184,13 @@ public class MainFrame extends JFrame {
         }
 
         if (opcao == JOptionPane.YES_OPTION) {
-            boolean salvou = salvarImagemArvore();
+            File arquivoImagem = salvarImagemArvore();
 
-            if (!salvou) {
+            if (arquivoImagem == null) {
                 return;
             }
+
+            salvarParentesesArquivo(arquivoImagem);
 
             String tipo = arvore.obterTipoArvore();
 
@@ -220,7 +227,7 @@ public class MainFrame extends JFrame {
         }
     }
 
-    private boolean salvarImagemArvore() {
+    private File salvarImagemArvore() {
         try {
             panel.revalidate();
             panel.repaint();
@@ -236,12 +243,15 @@ public class MainFrame extends JFrame {
 
             JFileChooser fileChooser = new JFileChooser();
             fileChooser.setDialogTitle("Salvar árvore como imagem");
-            fileChooser.setSelectedFile(new File("arvore.png"));
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy_HH-mm-ss");
+            String dataHora = LocalDateTime.now().format(formatter);
+
+            fileChooser.setSelectedFile(new File("arvore_" + dataHora + ".png"));
 
             int escolha = fileChooser.showSaveDialog(this);
 
             if (escolha != JFileChooser.APPROVE_OPTION) {
-                return false;
+                return null;
             }
 
             File arquivo = fileChooser.getSelectedFile();
@@ -289,12 +299,36 @@ public class MainFrame extends JFrame {
 
             ImageIO.write(imagem, "png", arquivo);
 
-            return true;
+            return arquivo;
 
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this,
                     "Erro ao salvar imagem: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private boolean salvarParentesesArquivo(File arquivoImagem) {
+        try {
+            String nome = arquivoImagem.getName();
+            String nomeBase = nome.substring(0, nome.lastIndexOf('.'));
+
+            File arquivoTxt = new File(arquivoImagem.getParentFile(), nomeBase + ".txt");
+
+            String conteudo = arvore.gerarParenteses();
+
+            java.io.FileWriter writer = new java.io.FileWriter(arquivoTxt);
+            writer.write("Árvore em parênteses alinhados:\n\n");
+            writer.write(conteudo);
+            writer.close();
+
+            return true;
+
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this,
+                    "Erro ao salvar arquivo de parênteses: " + e.getMessage());
             return false;
         }
     }
+
 }
