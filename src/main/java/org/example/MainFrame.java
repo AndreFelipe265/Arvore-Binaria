@@ -6,8 +6,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.Stack;
 
 public class MainFrame extends JFrame {
 
@@ -17,8 +16,13 @@ public class MainFrame extends JFrame {
     private JTextArea outputArea;
     private JScrollPane scrollPane;
 
+    private Stack<Tree> undoStack;
+    private Stack<Tree> redoStack;
+
     public MainFrame() {
         arvore = new Tree();
+        undoStack = new Stack<>();
+        redoStack = new Stack<>();
 
         setTitle("Visualização de Árvore Binária");
         setSize(1000, 700);
@@ -33,25 +37,30 @@ public class MainFrame extends JFrame {
 
         inputField = new JTextField(10);
 
-        JButton insertButton = new JButton("Inserir");
-        JButton caminhoButton = new JButton("Exibir Caminho");
+        JButton LNRButton = new JButton("Exibir Caminho LNR");
+        JButton LRNButton = new JButton("Exibir Caminho LRN");
+        JButton NLRButton = new JButton("Exibir Caminho NLR");
         JButton analisarNoButton = new JButton("Analisar Nó");
+        JButton desfazerButton = new JButton("Desfazer");
+        JButton refazerButton = new JButton("Refazer");
         JButton resetButton = new JButton("Resetar Árvore");
 
-        insertButton.setBackground(Color.WHITE);
-        caminhoButton.setBackground(Color.WHITE);
+        LNRButton.setBackground(Color.WHITE);
+        LRNButton.setBackground(Color.WHITE);
+        NLRButton.setBackground(Color.WHITE);
         analisarNoButton.setBackground(Color.WHITE);
+        desfazerButton.setBackground(Color.WHITE);
+        refazerButton.setBackground(Color.WHITE);
         resetButton.setBackground(Color.WHITE);
 
-        JLabel labelNumero = new JLabel("Número: ");
-        labelNumero.setForeground(Color.WHITE);
-
-        controlPanel.add(labelNumero);
+        
         controlPanel.add(inputField);
-        controlPanel.add(insertButton);
-
-        controlPanel.add(caminhoButton);
+        controlPanel.add(LNRButton);
+        controlPanel.add(LRNButton);
+        controlPanel.add(NLRButton);
         controlPanel.add(analisarNoButton);
+        controlPanel.add(desfazerButton);
+        controlPanel.add(refazerButton);
         controlPanel.add(resetButton);
 
         add(controlPanel, BorderLayout.NORTH);
@@ -71,23 +80,45 @@ public class MainFrame extends JFrame {
 
         add(outputScroll, BorderLayout.SOUTH);
 
-        insertButton.addActionListener(e -> inserirNumero());
         inputField.addActionListener(e -> inserirNumero());
-        caminhoButton.addActionListener(e -> abrirMenuCaminhos());
 
+        LNRButton.addActionListener(e -> exibirCaminhoLNR());
+        LRNButton.addActionListener(e -> exibirCaminhoLRN());
+        NLRButton.addActionListener(e -> exibirCaminhoNLR());
         analisarNoButton.addActionListener(e -> analisarNo());
+        desfazerButton.addActionListener(e -> desfazer());
+        refazerButton.addActionListener(e -> refazer());
         resetButton.addActionListener(e -> resetarArvore());
+    }
+
+    private void salvarEstadoParaUndo() {
+        undoStack.push(arvore.copiar());
+        redoStack.clear();
+    }
+
+    private void atualizarVisualizacao() {
+        panel.setRoot(arvore.root);
+        panel.revalidate();
+        panel.repaint();
+        inputField.setText("");
+        inputField.requestFocus();
     }
 
     private void inserirNumero() {
         try {
             Long valor = Long.parseLong(inputField.getText());
 
+            if (arvore.buscar(valor) != null) {
+                JOptionPane.showMessageDialog(this, "Número já existe na árvore: " + valor);
+                return;
+            }
+
             JViewport viewport = scrollPane.getViewport();
             Point posicaoAtual = viewport.getViewPosition();
             int centroX = posicaoAtual.x + viewport.getWidth() / 2;
             int centroY = posicaoAtual.y + viewport.getHeight() / 2;
 
+            salvarEstadoParaUndo();
             arvore.inserir(valor);
 
             panel.setRoot(arvore.root);
@@ -109,6 +140,7 @@ public class MainFrame extends JFrame {
 
             inputField.setText("");
             inputField.requestFocus();
+            outputArea.setText("Número " + valor + " inserido com sucesso.");
 
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Digite um número válido!");
@@ -132,53 +164,6 @@ public class MainFrame extends JFrame {
         JOptionPane.showMessageDialog(this, "Caminho NLR:\n" + resposta);
     }
 
-    private void abrirMenuCaminhos() {
-
-        JDialog dialog = new JDialog(this, "Escolha o Caminho");
-        dialog.setSize(300, 150);
-        dialog.setLocationRelativeTo(this);
-        dialog.setLayout(new FlowLayout());
-
-        JButton btnLNR = new JButton("LNR");
-        JButton btnNLR = new JButton("NLR");
-        JButton btnLRN = new JButton("LRN");
-
-        dialog.add(btnLNR);
-        dialog.add(btnNLR);
-        dialog.add(btnLRN);
-
-        // ações dos botões
-        btnLNR.addActionListener(e -> {
-            mostrarResultado(arvore.caminhoLNR(arvore.root));
-        });
-
-        btnNLR.addActionListener(e -> {
-            mostrarResultado(arvore.caminhoNLR(arvore.root));
-        });
-
-        btnLRN.addActionListener(e -> {
-            mostrarResultado(arvore.caminhoLRN(arvore.root));
-        });
-
-        dialog.setVisible(true);
-    }
-
-    private void mostrarResultado(String resultado) {
-        JTextArea area = new JTextArea(resultado);
-        area.setLineWrap(true);
-        area.setWrapStyleWord(true);
-        area.setEditable(false);
-
-        JScrollPane scroll = new JScrollPane(area);
-
-        JOptionPane.showMessageDialog(
-                this,
-                scroll,
-                "Resultado do Caminho",
-                JOptionPane.INFORMATION_MESSAGE
-        );
-    }
-
     private void analisarNo() {
         try {
             Long valor = Long.parseLong(inputField.getText());
@@ -192,18 +177,41 @@ public class MainFrame extends JFrame {
 
             int profundidade = arvore.calcProfundidade(valor);
             int altura = arvore.calcAltura(no);
-            int nivel = profundidade + 1;
 
             JOptionPane.showMessageDialog(this,
                     "Valor do nó: " + valor +
-                            "\nProfundidade: " + profundidade +
-                            "\nNível: " + nivel +
-                            "\nAltura: " + altura);
+                    "\nProfundidade: " + profundidade +
+                    "\nAltura: " + altura);
 
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Digite um número válido!");
         }
+    }
 
+    private void desfazer() {
+        if (undoStack.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nada para desfazer!");
+            return;
+        }
+
+        redoStack.push(arvore.copiar());
+        arvore = undoStack.pop();
+
+        atualizarVisualizacao();
+        outputArea.setText("Última ação desfeita.");
+    }
+
+    private void refazer() {
+        if (redoStack.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nada para refazer!");
+            return;
+        }
+
+        undoStack.push(arvore.copiar());
+        arvore = redoStack.pop();
+
+        atualizarVisualizacao();
+        outputArea.setText("Ação refeita.");
     }
 
     private void resetarArvore() {
@@ -224,13 +232,11 @@ public class MainFrame extends JFrame {
         }
 
         if (opcao == JOptionPane.YES_OPTION) {
-            File arquivoImagem = salvarImagemArvore();
+            boolean salvou = salvarImagemArvore();
 
-            if (arquivoImagem == null) {
+            if (!salvou) {
                 return;
             }
-
-            salvarParentesesArquivo(arquivoImagem);
 
             String tipo = arvore.obterTipoArvore();
 
@@ -253,12 +259,9 @@ public class MainFrame extends JFrame {
             );
         }
 
+        salvarEstadoParaUndo();
         arvore.limpar();
-        panel.setRoot(arvore.root);
-        panel.revalidate();
-        panel.repaint();
-        inputField.setText("");
-        inputField.requestFocus();
+        atualizarVisualizacao();
 
         if (opcao == JOptionPane.NO_OPTION) {
             outputArea.setText("A árvore foi resetada sem salvar.");
@@ -267,7 +270,7 @@ public class MainFrame extends JFrame {
         }
     }
 
-    private File salvarImagemArvore() {
+    private boolean salvarImagemArvore() {
         try {
             panel.revalidate();
             panel.repaint();
@@ -283,15 +286,12 @@ public class MainFrame extends JFrame {
 
             JFileChooser fileChooser = new JFileChooser();
             fileChooser.setDialogTitle("Salvar árvore como imagem");
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy_HH-mm-ss");
-            String dataHora = LocalDateTime.now().format(formatter);
-
-            fileChooser.setSelectedFile(new File("arvore_" + dataHora + ".png"));
+            fileChooser.setSelectedFile(new File("arvore.png"));
 
             int escolha = fileChooser.showSaveDialog(this);
 
             if (escolha != JFileChooser.APPROVE_OPTION) {
-                return null;
+                return false;
             }
 
             File arquivo = fileChooser.getSelectedFile();
@@ -339,36 +339,12 @@ public class MainFrame extends JFrame {
 
             ImageIO.write(imagem, "png", arquivo);
 
-            return arquivo;
-
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(this,
-                    "Erro ao salvar imagem: " + e.getMessage());
-            return null;
-        }
-    }
-
-    private boolean salvarParentesesArquivo(File arquivoImagem) {
-        try {
-            String nome = arquivoImagem.getName();
-            String nomeBase = nome.substring(0, nome.lastIndexOf('.'));
-
-            File arquivoTxt = new File(arquivoImagem.getParentFile(), nomeBase + ".txt");
-
-            String conteudo = arvore.gerarParenteses();
-
-            java.io.FileWriter writer = new java.io.FileWriter(arquivoTxt);
-            writer.write("Árvore em parênteses alinhados:\n\n");
-            writer.write(conteudo);
-            writer.close();
-
             return true;
 
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this,
-                    "Erro ao salvar arquivo de parênteses: " + e.getMessage());
+                    "Erro ao salvar imagem: " + e.getMessage());
             return false;
         }
     }
-
 }
