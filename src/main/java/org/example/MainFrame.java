@@ -6,6 +6,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Stack;
 
 public class MainFrame extends JFrame {
 
@@ -15,8 +16,13 @@ public class MainFrame extends JFrame {
     private JTextArea outputArea;
     private JScrollPane scrollPane;
 
+    private Stack<Tree> undoStack;
+    private Stack<Tree> redoStack;
+
     public MainFrame() {
         arvore = new Tree();
+        undoStack = new Stack<>();
+        redoStack = new Stack<>();
 
         setTitle("Visualização de Árvore Binária");
         setSize(1000, 700);
@@ -31,30 +37,29 @@ public class MainFrame extends JFrame {
 
         inputField = new JTextField(10);
 
-        JButton insertButton = new JButton("Inserir");
         JButton LNRButton = new JButton("Exibir Caminho LNR");
         JButton LRNButton = new JButton("Exibir Caminho LRN");
         JButton NLRButton = new JButton("Exibir Caminho NLR");
         JButton analisarNoButton = new JButton("Analisar Nó");
+        JButton desfazerButton = new JButton("Desfazer");
+        JButton refazerButton = new JButton("Refazer");
         JButton resetButton = new JButton("Resetar Árvore");
 
-        insertButton.setBackground(Color.WHITE);
         LNRButton.setBackground(Color.WHITE);
         LRNButton.setBackground(Color.WHITE);
         NLRButton.setBackground(Color.WHITE);
         analisarNoButton.setBackground(Color.WHITE);
+        desfazerButton.setBackground(Color.WHITE);
+        refazerButton.setBackground(Color.WHITE);
         resetButton.setBackground(Color.WHITE);
 
-        JLabel labelNumero = new JLabel("Número: ");
-        labelNumero.setForeground(Color.WHITE);
-
-        controlPanel.add(labelNumero);
         controlPanel.add(inputField);
-        controlPanel.add(insertButton);
         controlPanel.add(LNRButton);
         controlPanel.add(LRNButton);
         controlPanel.add(NLRButton);
         controlPanel.add(analisarNoButton);
+        controlPanel.add(desfazerButton);
+        controlPanel.add(refazerButton);
         controlPanel.add(resetButton);
 
         add(controlPanel, BorderLayout.NORTH);
@@ -74,25 +79,45 @@ public class MainFrame extends JFrame {
 
         add(outputScroll, BorderLayout.SOUTH);
 
-        insertButton.addActionListener(e -> inserirNumero());
         inputField.addActionListener(e -> inserirNumero());
 
         LNRButton.addActionListener(e -> exibirCaminhoLNR());
         LRNButton.addActionListener(e -> exibirCaminhoLRN());
         NLRButton.addActionListener(e -> exibirCaminhoNLR());
         analisarNoButton.addActionListener(e -> analisarNo());
+        desfazerButton.addActionListener(e -> desfazer());
+        refazerButton.addActionListener(e -> refazer());
         resetButton.addActionListener(e -> resetarArvore());
+    }
+
+    private void salvarEstadoParaUndo() {
+        undoStack.push(arvore.copiar());
+        redoStack.clear();
+    }
+
+    private void atualizarVisualizacao() {
+        panel.setRoot(arvore.root);
+        panel.revalidate();
+        panel.repaint();
+        inputField.setText("");
+        inputField.requestFocus();
     }
 
     private void inserirNumero() {
         try {
             Long valor = Long.parseLong(inputField.getText());
 
+            if (arvore.buscar(valor) != null) {
+                JOptionPane.showMessageDialog(this, "Número já existe na árvore: " + valor);
+                return;
+            }
+
             JViewport viewport = scrollPane.getViewport();
             Point posicaoAtual = viewport.getViewPosition();
             int centroX = posicaoAtual.x + viewport.getWidth() / 2;
             int centroY = posicaoAtual.y + viewport.getHeight() / 2;
 
+            salvarEstadoParaUndo();
             arvore.inserir(valor);
 
             panel.setRoot(arvore.root);
@@ -114,6 +139,7 @@ public class MainFrame extends JFrame {
 
             inputField.setText("");
             inputField.requestFocus();
+            outputArea.setText("Número " + valor + " inserido com sucesso.");
 
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Digite um número válido!");
@@ -161,6 +187,32 @@ public class MainFrame extends JFrame {
         }
     }
 
+    private void desfazer() {
+        if (undoStack.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nada para desfazer!");
+            return;
+        }
+
+        redoStack.push(arvore.copiar());
+        arvore = undoStack.pop();
+
+        atualizarVisualizacao();
+        outputArea.setText("Última ação desfeita.");
+    }
+
+    private void refazer() {
+        if (redoStack.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nada para refazer!");
+            return;
+        }
+
+        undoStack.push(arvore.copiar());
+        arvore = redoStack.pop();
+
+        atualizarVisualizacao();
+        outputArea.setText("Ação refeita.");
+    }
+
     private void resetarArvore() {
         if (arvore.root == null) {
             JOptionPane.showMessageDialog(this, "A árvore já está vazia!");
@@ -206,12 +258,9 @@ public class MainFrame extends JFrame {
             );
         }
 
+        salvarEstadoParaUndo();
         arvore.limpar();
-        panel.setRoot(arvore.root);
-        panel.revalidate();
-        panel.repaint();
-        inputField.setText("");
-        inputField.requestFocus();
+        atualizarVisualizacao();
 
         if (opcao == JOptionPane.NO_OPTION) {
             outputArea.setText("A árvore foi resetada sem salvar.");
