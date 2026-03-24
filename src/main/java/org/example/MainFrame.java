@@ -32,16 +32,12 @@ public class MainFrame extends JFrame {
         inputField = new JTextField(10);
 
         JButton insertButton = new JButton("Inserir");
-        JButton LNRButton = new JButton("Exibir Caminho LNR");
-        JButton LRNButton = new JButton("Exibir Caminho LRN");
-        JButton NLRButton = new JButton("Exibir Caminho NLR");
+        JButton caminhoButton = new JButton("Exibir Caminho");
         JButton analisarNoButton = new JButton("Analisar Nó");
         JButton resetButton = new JButton("Resetar Árvore");
 
         insertButton.setBackground(Color.WHITE);
-        LNRButton.setBackground(Color.WHITE);
-        LRNButton.setBackground(Color.WHITE);
-        NLRButton.setBackground(Color.WHITE);
+        caminhoButton.setBackground(Color.WHITE);
         analisarNoButton.setBackground(Color.WHITE);
         resetButton.setBackground(Color.WHITE);
 
@@ -51,9 +47,8 @@ public class MainFrame extends JFrame {
         controlPanel.add(labelNumero);
         controlPanel.add(inputField);
         controlPanel.add(insertButton);
-        controlPanel.add(LNRButton);
-        controlPanel.add(LRNButton);
-        controlPanel.add(NLRButton);
+
+        controlPanel.add(caminhoButton);
         controlPanel.add(analisarNoButton);
         controlPanel.add(resetButton);
 
@@ -76,10 +71,8 @@ public class MainFrame extends JFrame {
 
         insertButton.addActionListener(e -> inserirNumero());
         inputField.addActionListener(e -> inserirNumero());
+        caminhoButton.addActionListener(e -> abrirMenuCaminhos());
 
-        LNRButton.addActionListener(e -> exibirCaminhoLNR());
-        LRNButton.addActionListener(e -> exibirCaminhoLRN());
-        NLRButton.addActionListener(e -> exibirCaminhoNLR());
         analisarNoButton.addActionListener(e -> analisarNo());
         resetButton.addActionListener(e -> resetarArvore());
     }
@@ -135,6 +128,53 @@ public class MainFrame extends JFrame {
     private void exibirCaminhoNLR() {
         String resposta = arvore.caminhoNLR(arvore.root);
         JOptionPane.showMessageDialog(this, "Caminho NLR:\n" + resposta);
+    }
+
+    private void abrirMenuCaminhos() {
+
+        JDialog dialog = new JDialog(this, "Escolha o Caminho");
+        dialog.setSize(300, 150);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new FlowLayout());
+
+        JButton btnLNR = new JButton("LNR");
+        JButton btnNLR = new JButton("NLR");
+        JButton btnLRN = new JButton("LRN");
+
+        dialog.add(btnLNR);
+        dialog.add(btnNLR);
+        dialog.add(btnLRN);
+
+        // ações dos botões
+        btnLNR.addActionListener(e -> {
+            mostrarResultado(arvore.caminhoLNR(arvore.root));
+        });
+
+        btnNLR.addActionListener(e -> {
+            mostrarResultado(arvore.caminhoNLR(arvore.root));
+        });
+
+        btnLRN.addActionListener(e -> {
+            mostrarResultado(arvore.caminhoLRN(arvore.root));
+        });
+
+        dialog.setVisible(true);
+    }
+
+    private void mostrarResultado(String resultado) {
+        JTextArea area = new JTextArea(resultado);
+        area.setLineWrap(true);
+        area.setWrapStyleWord(true);
+        area.setEditable(false);
+
+        JScrollPane scroll = new JScrollPane(area);
+
+        JOptionPane.showMessageDialog(
+                this,
+                scroll,
+                "Resultado do Caminho",
+                JOptionPane.INFORMATION_MESSAGE
+        );
     }
 
     private void analisarNo() {
