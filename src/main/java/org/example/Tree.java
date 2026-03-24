@@ -205,20 +205,19 @@ public class Tree {
         root = null;
     }
 
-    public Tree copiar() {
-        Tree nova = new Tree();
-        nova.root = copiarNo(this.root);
-        return nova;
+    public String gerarParenteses() {
+        return gerarParenteses(root);
     }
 
-    private No copiarNo(No no) {
-        if (no == null) return null;
+    private String gerarParenteses(No no) {
+        if (no == null) {
+            return "()";
+        }
 
-        No novo = new No();
-        novo.item = no.item;
-        novo.esq = copiarNo(no.esq);
-        novo.dir = copiarNo(no.dir);
-
-        return novo;
+        return "("
+                + no.item + " "
+                + gerarParenteses(no.esq) + " "
+                + gerarParenteses(no.dir)
+                + ")";
     }
 }
