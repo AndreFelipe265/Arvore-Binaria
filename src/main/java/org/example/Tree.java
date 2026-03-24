@@ -1,5 +1,7 @@
 package org.example;
 
+import java.util.StringTokenizer;
+
 public class Tree {
     public No root;
 
@@ -203,6 +205,58 @@ public class Tree {
 
     public void limpar() {
         root = null;
+    }
+
+    public void carregarParenteses(String conteudo) {
+        conteudo = conteudo.trim();
+        if (conteudo.isEmpty() || conteudo.equals("()")) {
+            root = null;
+            return;
+        }
+        root = parseParenteses(new StringTokenizer(conteudo, "() ", true));
+    }
+
+    private No parseParenteses(java.util.StringTokenizer st) {
+        if (!st.hasMoreTokens()) return null;
+
+        String token = st.nextToken();
+        // Pular espaços
+        while (token.equals(" ")) {
+            if (!st.hasMoreTokens()) return null;
+            token = st.nextToken();
+        }
+
+        if (token.equals("(")) {
+            if (!st.hasMoreTokens()) return null;
+            token = st.nextToken();
+            
+            // Pular espaços antes do valor ou do parêntese de fechamento
+            while (token.equals(" ")) {
+                if (!st.hasMoreTokens()) return null;
+                token = st.nextToken();
+            }
+            
+            if (token.equals(")")) {
+                return null;
+            }
+
+            // É um valor de nó
+            No no = new No();
+            no.item = Long.parseLong(token);
+            
+            no.esq = parseParenteses(st);
+            no.dir = parseParenteses(st);
+            
+            // Consumir o parêntese de fechamento correspondente
+            while (st.hasMoreTokens()) {
+                token = st.nextToken();
+                if (token.equals(")")) break;
+            }
+            
+            return no;
+        }
+        
+        return null;
     }
 
     public String gerarParenteses() {

@@ -43,12 +43,14 @@ public class MainFrame extends JFrame {
         JButton analisarNoButton = new JButton("Analisar Nó");
         JButton desfazerButton = new JButton("Desfazer");
         JButton refazerButton = new JButton("Refazer");
+        JButton carregarButton = new JButton("Carregar Árvore");
         JButton resetButton = new JButton("Resetar Árvore");
 
         caminhoButton.setBackground(Color.WHITE);
         analisarNoButton.setBackground(Color.WHITE);
         desfazerButton.setBackground(Color.WHITE);
         refazerButton.setBackground(Color.WHITE);
+        carregarButton.setBackground(Color.WHITE);
         resetButton.setBackground(Color.WHITE);
 
         JLabel labelNumero = new JLabel("Número: ");
@@ -60,6 +62,7 @@ public class MainFrame extends JFrame {
         controlPanel.add(analisarNoButton);
         controlPanel.add(desfazerButton);
         controlPanel.add(refazerButton);
+        controlPanel.add(carregarButton);
         controlPanel.add(resetButton);
 
         add(controlPanel, BorderLayout.NORTH);
@@ -84,6 +87,7 @@ public class MainFrame extends JFrame {
         analisarNoButton.addActionListener(e -> analisarNo());
         desfazerButton.addActionListener(e -> desfazer());
         refazerButton.addActionListener(e -> refazer());
+        carregarButton.addActionListener(e -> carregarArvore());
         resetButton.addActionListener(e -> resetarArvore());
     }
 
@@ -304,6 +308,43 @@ public class MainFrame extends JFrame {
             outputArea.setText("A árvore foi resetada sem salvar.");
         } else {
             outputArea.append("\nA árvore foi resetada.");
+        }
+    }
+
+    private void carregarArvore() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Carregar árvore de arquivo TXT");
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Arquivos de texto (*.txt)", "txt"));
+
+        int escolha = fileChooser.showOpenDialog(this);
+
+        if (escolha == JFileChooser.APPROVE_OPTION) {
+            File arquivo = fileChooser.getSelectedFile();
+            try {
+                java.util.Scanner scanner = new java.util.Scanner(arquivo);
+                StringBuilder conteudo = new StringBuilder();
+                
+                // Pular as duas primeiras linhas (cabeçalho)
+                if (scanner.hasNextLine()) scanner.nextLine(); // "Árvore em parênteses alinhados:"
+                if (scanner.hasNextLine()) scanner.nextLine(); // linha vazia
+                
+                while (scanner.hasNextLine()) {
+                    conteudo.append(scanner.nextLine());
+                }
+                scanner.close();
+
+                salvarEstadoParaUndo();
+                arvore.carregarParenteses(conteudo.toString());
+                atualizarVisualizacao();
+                
+                outputArea.setText("Árvore carregada com sucesso de: " + arquivo.getName());
+                
+                String tipo = arvore.obterTipoArvore();
+                outputArea.append("\nTipo da árvore carregada: " + tipo);
+
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Erro ao carregar arquivo: " + e.getMessage());
+            }
         }
     }
 
