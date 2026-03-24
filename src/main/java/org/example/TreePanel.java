@@ -34,7 +34,7 @@ public class TreePanel extends JPanel {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                     RenderingHints.VALUE_ANTIALIAS_ON);
 
-            desenharArvore(g2, root, largura / 2, 60, largura / 4);
+            desenharArvore(g2, root, getWidth() / 2, 50, getWidth() / 6);
         }
     }
 
