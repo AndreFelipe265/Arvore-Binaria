@@ -205,6 +205,67 @@ public class Tree {
         root = null;
     }
 
+    public void carregarDeParenteses(String conteudo) {
+        // Remover o cabeçalho se houver
+        if (conteudo.contains("Árvore em parênteses alinhados:")) {
+            conteudo = conteudo.substring(conteudo.indexOf(":\n\n") + 3).trim();
+        }
+
+        this.root = parsingParenteses(conteudo);
+    }
+
+    private No parsingParenteses(String str) {
+        str = str.trim();
+        if (str.equals("()") || str.isEmpty()) {
+            return null;
+        }
+
+        // Remover os parênteses externos: (10 (5 () ()) (15 () ())) -> 10 (5 () ()) (15 () ())
+        if (str.startsWith("(") && str.endsWith(")")) {
+            str = str.substring(1, str.length() - 1).trim();
+        }
+
+        // Localizar o primeiro espaço após o item para separar o valor dos filhos
+        int primeiroEspaco = str.indexOf(' ');
+        if (primeiroEspaco == -1) {
+            // É um nó folha sem filhos representados: "10"
+            No no = new No();
+            no.item = Long.parseLong(str);
+            no.esq = null;
+            no.dir = null;
+            return no;
+        }
+
+        String itemStr = str.substring(0, primeiroEspaco);
+        No no = new No();
+        no.item = Long.parseLong(itemStr);
+
+        String resto = str.substring(primeiroEspaco).trim(); // "(5 () ()) (15 () ())"
+
+        // Separar os dois blocos de parênteses (filho esquerdo e filho direito)
+        int balance = 0;
+        int divisor = -1;
+        for (int i = 0; i < resto.length(); i++) {
+            if (resto.charAt(i) == '(') balance++;
+            else if (resto.charAt(i) == ')') balance--;
+
+            if (balance == 0) {
+                divisor = i;
+                break;
+            }
+        }
+
+        if (divisor != -1) {
+            String esqStr = resto.substring(0, divisor + 1);
+            String dirStr = resto.substring(divisor + 1).trim();
+
+            no.esq = parsingParenteses(esqStr);
+            no.dir = parsingParenteses(dirStr);
+        }
+
+        return no;
+    }
+
     public String gerarParenteses() {
         return gerarParenteses(root);
     }
