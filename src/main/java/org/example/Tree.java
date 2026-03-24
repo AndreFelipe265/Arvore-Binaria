@@ -220,4 +220,21 @@ public class Tree {
                 + gerarParenteses(no.dir)
                 + ")";
     }
+
+    public Tree copiar() {
+        Tree nova = new Tree();
+        nova.root = copiarNo(this.root);
+        return nova;
+    }
+
+    private No copiarNo(No no) {
+        if (no == null) return null;
+
+        No novo = new No();
+        novo.item = no.item;
+        novo.esq = copiarNo(no.esq);
+        novo.dir = copiarNo(no.dir);
+
+        return novo;
+    }
 }
