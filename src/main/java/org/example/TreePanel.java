@@ -9,7 +9,6 @@ public class TreePanel extends JPanel {
     private final int NODE_RADIUS = 25;
     private final int LEVEL_HEIGHT = 80;
 
-
     public TreePanel(No root) {
         this.root = root;
         setBackground(new Color(43,43,43));

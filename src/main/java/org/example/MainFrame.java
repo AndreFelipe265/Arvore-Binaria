@@ -40,14 +40,14 @@ public class MainFrame extends JFrame {
         inputField = new JTextField(10);
 
         JButton caminhoButton = new JButton("Exibir Caminho");
-        JButton analisarNoButton = new JButton("Analisar Nó");
+        JButton analisarButton = new JButton("Analisar");
         JButton desfazerButton = new JButton("Desfazer");
         JButton refazerButton = new JButton("Refazer");
         JButton carregarButton = new JButton("Carregar Árvore");
         JButton resetButton = new JButton("Resetar Árvore");
 
         caminhoButton.setBackground(Color.WHITE);
-        analisarNoButton.setBackground(Color.WHITE);
+        analisarButton.setBackground(Color.WHITE);
         desfazerButton.setBackground(Color.WHITE);
         refazerButton.setBackground(Color.WHITE);
         carregarButton.setBackground(Color.WHITE);
@@ -59,7 +59,7 @@ public class MainFrame extends JFrame {
         controlPanel.add(labelNumero);
         controlPanel.add(inputField);
         controlPanel.add(caminhoButton);
-        controlPanel.add(analisarNoButton);
+        controlPanel.add(analisarButton);
         controlPanel.add(desfazerButton);
         controlPanel.add(refazerButton);
         controlPanel.add(carregarButton);
@@ -84,7 +84,7 @@ public class MainFrame extends JFrame {
 
         inputField.addActionListener(e -> inserirNumero());
         caminhoButton.addActionListener(e -> abrirMenuCaminhos());
-        analisarNoButton.addActionListener(e -> analisarNo());
+        analisarButton.addActionListener(e -> abrirMenuAnalise());
         desfazerButton.addActionListener(e -> desfazer());
         refazerButton.addActionListener(e -> refazer());
         carregarButton.addActionListener(e -> carregarArvore());
@@ -149,21 +149,6 @@ public class MainFrame extends JFrame {
         }
     }
 
-    private void exibirCaminhoLNR() {
-        String resposta = arvore.caminhoLNR(arvore.root);
-        JOptionPane.showMessageDialog(this, "Caminho LNR:\n" + resposta);
-    }
-
-    private void exibirCaminhoLRN() {
-        String resposta = arvore.caminhoLRN(arvore.root);
-        JOptionPane.showMessageDialog(this, "Caminho LRN:\n" + resposta);
-    }
-
-    private void exibirCaminhoNLR() {
-        String resposta = arvore.caminhoNLR(arvore.root);
-        JOptionPane.showMessageDialog(this, "Caminho NLR:\n" + resposta);
-    }
-
     private void abrirMenuCaminhos() {
         JDialog dialog = new JDialog(this, "Escolha o Caminho");
         dialog.setSize(300, 150);
@@ -201,30 +186,98 @@ public class MainFrame extends JFrame {
         );
     }
 
-    private void analisarNo() {
-        try {
-            Long valor = Long.parseLong(inputField.getText());
+    private void abrirMenuAnalise() {
+        JDialog dialog = new JDialog(this, "Tipo de Análise");
+        dialog.setSize(300, 150);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new FlowLayout());
 
-            No no = arvore.buscar(valor);
+        JButton btnNo = new JButton("Analisar Nó");
+        JButton btnArvore = new JButton("Analisar Árvore");
 
-            if (no == null) {
-                JOptionPane.showMessageDialog(this, "Nó não encontrado!");
-                return;
+        dialog.add(btnNo);
+        dialog.add(btnArvore);
+
+        btnNo.addActionListener(e -> {
+            dialog.dispose();
+            abrirAnaliseNoDialog();
+        });
+
+        btnArvore.addActionListener(e -> {
+            dialog.dispose();
+            analisarArvore();
+        });
+
+        dialog.setVisible(true);
+    }
+
+    private void abrirAnaliseNoDialog() {
+        JDialog dialog = new JDialog(this, "Analisar Nó", true);
+        dialog.setSize(300, 150);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new FlowLayout());
+
+        JLabel label = new JLabel("Valor do nó:");
+        JTextField campo = new JTextField(10);
+        JButton btnAnalisar = new JButton("Analisar");
+
+        dialog.add(label);
+        dialog.add(campo);
+        dialog.add(btnAnalisar);
+
+        btnAnalisar.addActionListener(e -> {
+            try {
+                Long valor = Long.parseLong(campo.getText());
+
+                No no = arvore.buscar(valor);
+
+                if (no == null) {
+                    JOptionPane.showMessageDialog(dialog, "Nó não encontrado!");
+                    return;
+                }
+
+                int profundidade = arvore.calcProfundidade(valor);
+                int altura = arvore.calcAltura(no);
+                int nivel = profundidade;
+
+                int grau = 0;
+                if (no.getEsquerda() != null) grau++;
+                if (no.getDireita() != null) grau++;
+
+                JOptionPane.showMessageDialog(dialog,
+                        "Valor do nó: " + valor +
+                                "\nProfundidade: " + profundidade +
+                                "\nNível: " + nivel +
+                                "\nGrau (Nº de filhos): " + grau +
+                                "\nAltura: " + altura);
+
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(dialog, "Digite um número válido!");
             }
+        });
 
-            int profundidade = arvore.calcProfundidade(valor);
-            int altura = arvore.calcAltura(no);
-            int nivel = profundidade + 1;
+        dialog.setVisible(true);
+    }
 
-            JOptionPane.showMessageDialog(this,
-                    "Valor do nó: " + valor +
-                            "\nProfundidade: " + profundidade +
-                            "\nNível: " + nivel +
-                            "\nAltura: " + altura);
-
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Digite um número válido!");
+    private void analisarArvore() {
+        if (arvore.root == null) {
+            JOptionPane.showMessageDialog(this, "A árvore está vazia!");
+            return;
         }
+
+        int altura = arvore.calcAltura(arvore.root);
+        int nivel = altura;
+        int profMaxima = altura;
+        int totalNos = arvore.contarNos(arvore.root);
+        String tipo = arvore.obterTipoArvore();
+
+        JOptionPane.showMessageDialog(this,
+                "Análise da Árvore:\n\n" +
+                        "Altura: " + altura +
+                        "\nNível: " + nivel +
+                        "\nProfundidade: " + profMaxima +
+                        "\nQuantidade de nós: " + totalNos +
+                        "\nTipo: " + tipo);
     }
 
     private void desfazer() {
@@ -323,10 +376,9 @@ public class MainFrame extends JFrame {
             try {
                 java.util.Scanner scanner = new java.util.Scanner(arquivo);
                 StringBuilder conteudo = new StringBuilder();
-                
-                // Pular as duas primeiras linhas (cabeçalho)
-                if (scanner.hasNextLine()) scanner.nextLine(); // "Árvore em parênteses alinhados:"
-                if (scanner.hasNextLine()) scanner.nextLine(); // linha vazia
+
+                if (scanner.hasNextLine()) scanner.nextLine();
+                if (scanner.hasNextLine()) scanner.nextLine();
                 
                 while (scanner.hasNextLine()) {
                     conteudo.append(scanner.nextLine());

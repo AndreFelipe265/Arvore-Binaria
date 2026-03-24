@@ -5,38 +5,6 @@ import java.util.StringTokenizer;
 public class Tree {
     public No root;
 
-    public void exibir() {
-        System.out.print("\n Exibindo em ordem: ");
-        inOrder(root);
-    }
-
-    public void exibirArvore() {
-        System.out.println("\nÁrvore:");
-        exibirArvore(root, 0);
-    }
-
-    private void exibirArvore(No atual, int nivel) {
-        if (atual != null) {
-            exibirArvore(atual.dir, nivel + 1);
-
-            for (int i = 0; i < nivel; i++) {
-                System.out.print("    ");
-            }
-
-            System.out.println(atual.item);
-
-            exibirArvore(atual.esq, nivel + 1);
-        }
-    }
-
-    public void inOrder(No atual) {
-        if (atual != null) {
-            inOrder(atual.esq);
-            System.out.print(atual.item + " ");
-            inOrder(atual.dir);
-        }
-    }
-
     public String caminhoLNR(No raiz) {
         StringBuilder caminho = new StringBuilder();
 
