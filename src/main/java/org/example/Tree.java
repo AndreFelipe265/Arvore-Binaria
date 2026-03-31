@@ -1,5 +1,7 @@
 package org.example;
 
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.StringTokenizer;
 
 public class Tree {
@@ -57,7 +59,7 @@ public class Tree {
                 anterior = atual;
 
                 if (v.equals(atual.item)) {
-                    throw new RuntimeException("Número já existe na árvore: " + v);
+                    throw new RuntimeException("Numero ja existe na arvore: " + v);
                 }
 
                 if (v < atual.item) {
@@ -132,43 +134,59 @@ public class Tree {
 
     private boolean isCheia(No no) {
         if (no == null) return true;
-        if (no.esq == null && no.dir == null) return true;
-        if (no.esq != null && no.dir != null) {
-            return isCheia(no.esq) && isCheia(no.dir);
+
+        int altura = calcAltura(no);
+        return isCheia(no, 0, altura);
+    }
+
+    private boolean isCheia(No no, int nivel, int altura) {
+        if (no == null) return true;
+
+        if (no.esq == null && no.dir == null) {
+            return nivel == altura;
         }
-        return false;
+
+        if (no.esq == null || no.dir == null) {
+            return false;
+        }
+
+        return isCheia(no.esq, nivel + 1, altura) && isCheia(no.dir, nivel + 1, altura);
     }
 
-    private boolean isCompleta(No no, int index, int numNos) {
+    private boolean isCompleta(No no) {
         if (no == null) return true;
-        if (index >= numNos) return false;
 
-        return isCompleta(no.esq, 2 * index + 1, numNos)
-                && isCompleta(no.dir, 2 * index + 2, numNos);
-    }
+        Queue<No> fila = new LinkedList<>();
+        fila.add(no);
+        boolean encontrouEspacoVazio = false;
 
-    private boolean isIncompleta(No no) {
-        if (no == null) return true;
-        if (no.esq != null && no.dir != null) return false;
-        return isIncompleta(no.esq) && isIncompleta(no.dir);
+        while (!fila.isEmpty()) {
+            No atual = fila.poll();
+
+            if (atual.esq != null) {
+                if (encontrouEspacoVazio) return false;
+                fila.add(atual.esq);
+            } else {
+                encontrouEspacoVazio = true;
+            }
+
+            if (atual.dir != null) {
+                if (encontrouEspacoVazio) return false;
+                fila.add(atual.dir);
+            } else {
+                encontrouEspacoVazio = true;
+            }
+        }
+
+        return true;
     }
 
     public String obterTipoArvore() {
-        if (root == null) return "Árvore Vazia";
+        if (root == null) return "Arvore vazia";
 
-        int numNos = contarNos(root);
-        int altura = calcAltura(root);
-
-        boolean cheia = isCheia(root);
-        boolean completa = isCompleta(root, 0, numNos);
-        boolean perfeita = (numNos == (Math.pow(2, altura + 1) - 1));
-        boolean incompleta = isIncompleta(root);
-
-        if (perfeita) return "Perfeita";
-        if (cheia) return "Cheia";
-        if (completa) return "Completa";
-        if (incompleta) return "Incompleta";
-        return "Árvore binária comum";
+        if (isCheia(root)) return "Cheia";
+        if (isCompleta(root)) return "Completa";
+        return "Incompleta";
     }
 
     public void limpar() {
@@ -184,11 +202,10 @@ public class Tree {
         root = parseParenteses(new StringTokenizer(conteudo, "() ", true));
     }
 
-    private No parseParenteses(java.util.StringTokenizer st) {
+    private No parseParenteses(StringTokenizer st) {
         if (!st.hasMoreTokens()) return null;
 
         String token = st.nextToken();
-        // Pular espaços
         while (token.equals(" ")) {
             if (!st.hasMoreTokens()) return null;
             token = st.nextToken();
@@ -197,33 +214,30 @@ public class Tree {
         if (token.equals("(")) {
             if (!st.hasMoreTokens()) return null;
             token = st.nextToken();
-            
-            // Pular espaços antes do valor ou do parêntese de fechamento
+
             while (token.equals(" ")) {
                 if (!st.hasMoreTokens()) return null;
                 token = st.nextToken();
             }
-            
+
             if (token.equals(")")) {
                 return null;
             }
 
-            // É um valor de nó
             No no = new No();
             no.item = Long.parseLong(token);
-            
+
             no.esq = parseParenteses(st);
             no.dir = parseParenteses(st);
-            
-            // Consumir o parêntese de fechamento correspondente
+
             while (st.hasMoreTokens()) {
                 token = st.nextToken();
                 if (token.equals(")")) break;
             }
-            
+
             return no;
         }
-        
+
         return null;
     }
 
