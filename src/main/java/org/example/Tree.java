@@ -193,6 +193,29 @@ public class Tree {
         root = null;
     }
 
+    public void inverterSubarvores() {
+        inverterSubarvores(root);
+    }
+
+    private void inverterSubarvores(No no) {
+        if (no == null) {
+            return;
+        }
+
+        No temp = no.esq;
+        no.esq = no.dir;
+        no.dir = temp;
+
+        inverterSubarvores(no.esq);
+        inverterSubarvores(no.dir);
+    }
+
+    public void imprimirArvore() {
+        System.out.println("Caminho LNR: " + caminhoLNR(root));
+        System.out.println("Caminho NLR: " + caminhoNLR(root));
+        System.out.println("Caminho LRN: " + caminhoLRN(root));
+    }
+
     public void carregarParenteses(String conteudo) {
         conteudo = conteudo.trim();
         if (conteudo.isEmpty() || conteudo.equals("()")) {

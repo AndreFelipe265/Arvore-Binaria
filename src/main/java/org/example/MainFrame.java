@@ -44,6 +44,7 @@ public class MainFrame extends JFrame {
         JButton desfazerButton = new JButton("Desfazer");
         JButton refazerButton = new JButton("Refazer");
         JButton carregarButton = new JButton("Carregar Árvore");
+        JButton inverterButton = new JButton("Inverter Árvore");
         JButton resetButton = new JButton("Resetar Árvore");
 
         caminhoButton.setBackground(Color.WHITE);
@@ -51,6 +52,7 @@ public class MainFrame extends JFrame {
         desfazerButton.setBackground(Color.WHITE);
         refazerButton.setBackground(Color.WHITE);
         carregarButton.setBackground(Color.WHITE);
+        inverterButton.setBackground(Color.WHITE);
         resetButton.setBackground(Color.WHITE);
 
         JLabel labelNumero = new JLabel("Número: ");
@@ -63,6 +65,7 @@ public class MainFrame extends JFrame {
         controlPanel.add(desfazerButton);
         controlPanel.add(refazerButton);
         controlPanel.add(carregarButton);
+        controlPanel.add(inverterButton);
         controlPanel.add(resetButton);
 
         add(controlPanel, BorderLayout.NORTH);
@@ -88,7 +91,27 @@ public class MainFrame extends JFrame {
         desfazerButton.addActionListener(e -> desfazer());
         refazerButton.addActionListener(e -> refazer());
         carregarButton.addActionListener(e -> carregarArvore());
+        inverterButton.addActionListener(e -> inverterArvore());
         resetButton.addActionListener(e -> resetarArvore());
+    }
+
+    private void inverterArvore() {
+        if (arvore.root == null) {
+            JOptionPane.showMessageDialog(this, "A árvore está vazia!");
+            return;
+        }
+
+        salvarEstadoParaUndo();
+        arvore.inverterSubarvores();
+        atualizarVisualizacao();
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("Árvore invertida com sucesso!\n");
+        sb.append("Caminho LNR (Inorder): ").append(arvore.caminhoLNR(arvore.root)).append("\n");
+        sb.append("Caminho NLR (Preorder): ").append(arvore.caminhoNLR(arvore.root)).append("\n");
+        sb.append("Caminho LRN (Postorder): ").append(arvore.caminhoLRN(arvore.root));
+
+        outputArea.setText(sb.toString());
     }
 
     private void salvarEstadoParaUndo() {
