@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Stack;
+import java.util.List;
 
 public class MainFrame extends JFrame {
 
@@ -17,6 +18,10 @@ public class MainFrame extends JFrame {
     private JTextField inputField;
     private JTextArea outputArea;
     private JScrollPane scrollPane;
+    private boolean isAVL;
+    private JPanel controlPanel;
+    private JLabel statusLabel;
+    private boolean emAnimacao = false;
 
     private Stack<Tree> undoStack;
     private Stack<Tree> redoStack;
@@ -25,6 +30,15 @@ public class MainFrame extends JFrame {
         arvore = new Tree();
         undoStack = new Stack<>();
         redoStack = new Stack<>();
+        controlPanel = new JPanel();
+
+        statusLabel = new JLabel("Executando balanceamento (Não é possiévl inserir números agora)...");
+        statusLabel.setForeground(Color.YELLOW);
+        statusLabel.setVisible(false);
+        statusLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        statusLabel.setFont(new Font("Arial", Font.BOLD, 16));
+
+        controlPanel.add(statusLabel);
 
         setTitle("Visualização de Árvore Binária");
         setSize(1000, 700);
@@ -36,6 +50,20 @@ public class MainFrame extends JFrame {
 
         JPanel controlPanel = new JPanel();
         controlPanel.setBackground(new Color(30, 30, 30));
+
+        String[] opcoes = {"Árvore Binária de Busca", "Árvore Binária AVL"};
+
+        String escolha = (String) JOptionPane.showInputDialog(
+                this,
+                "Escolha o tipo de árvore:",
+                "Tipo",
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                opcoes,
+                opcoes[0]
+        );
+
+        isAVL = escolha.equals("Árvore Binária AVL");
 
         inputField = new JTextField(10);
 
@@ -68,7 +96,13 @@ public class MainFrame extends JFrame {
         controlPanel.add(inverterButton);
         controlPanel.add(resetButton);
 
-        add(controlPanel, BorderLayout.NORTH);
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBackground(new Color(30, 30, 30));
+
+        topPanel.add(controlPanel, BorderLayout.CENTER);
+        topPanel.add(statusLabel, BorderLayout.SOUTH);
+
+        add(topPanel, BorderLayout.NORTH);
 
         panel = new TreePanel(arvore.root);
         scrollPane = new JScrollPane(panel);
@@ -93,6 +127,24 @@ public class MainFrame extends JFrame {
         carregarButton.addActionListener(e -> carregarArvore());
         inverterButton.addActionListener(e -> inverterArvore());
         resetButton.addActionListener(e -> resetarArvore());
+    }
+
+    private void setUIEnabled(boolean enabled) {
+        for (Component c : controlPanel.getComponents()) {
+            c.setEnabled(enabled);
+        }
+
+        inputField.setEnabled(enabled);
+    }
+
+    private void entrarModoAnimacao() {
+        controlPanel.setVisible(false);
+        statusLabel.setVisible(true);
+    }
+
+    private void sairModoAnimacao() {
+        controlPanel.setVisible(true);
+        statusLabel.setVisible(false);
     }
 
     private void inverterArvore() {
@@ -129,6 +181,10 @@ public class MainFrame extends JFrame {
 
     private void inserirNumero() {
         try {
+            if (emAnimacao) {
+                return;
+            }
+
             Long valor = Long.parseLong(inputField.getText());
 
             if (arvore.buscar(valor) != null) {
@@ -142,11 +198,14 @@ public class MainFrame extends JFrame {
             int centroY = posicaoAtual.y + viewport.getHeight() / 2;
 
             salvarEstadoParaUndo();
-            arvore.inserir(valor);
-
-            panel.setRoot(arvore.root);
-            panel.revalidate();
-            panel.repaint();
+            if (isAVL) {
+                AVLService avl = new AVLService(arvore);
+                List<No> passos = avl.inserirComPassos(valor);
+                animar(passos);
+            } else {
+                arvore.inserir(valor);
+                panel.repaint();
+            }
 
             SwingUtilities.invokeLater(() -> {
                 int novaLargura = panel.getWidth();
@@ -170,6 +229,35 @@ public class MainFrame extends JFrame {
         } catch (Exception exception) {
             JOptionPane.showMessageDialog(this, "Erro ao inserir valor: " + exception.getMessage());
         }
+    }
+
+    private void animar(List<No> passos) {
+
+        emAnimacao = true;
+        setUIEnabled(false);
+        entrarModoAnimacao();
+
+        Timer timer = new Timer(1000, null);
+
+        final int[] index = {0};
+
+        timer.addActionListener(e -> {
+            if (index[0] < passos.size()) {
+                panel.setRoot(passos.get(index[0]));
+                panel.repaint();
+                index[0]++;
+            } else {
+                timer.stop();
+                panel.setRoot(arvore.root);
+                panel.repaint();
+
+                emAnimacao = false;
+                setUIEnabled(true);
+                sairModoAnimacao();
+            }
+        });
+
+        timer.start();
     }
 
     private void abrirMenuCaminhos() {
@@ -526,4 +614,6 @@ public class MainFrame extends JFrame {
             return false;
         }
     }
+
+
 }

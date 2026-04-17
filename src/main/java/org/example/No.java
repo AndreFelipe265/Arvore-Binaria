@@ -4,6 +4,11 @@ public class No {
     public long item;
     public No dir;
     public No esq;
+    public int altura;
+
+    public No() {
+        altura = 1;
+    }
 
     public No getEsquerda() {
         return esq;

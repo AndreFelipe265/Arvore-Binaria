@@ -296,4 +296,103 @@ public class Tree {
 
         return novo;
     }
+
+    public int altura(No no) {
+        return (no == null) ? 0 : no.altura;
+    }
+
+    public int fatorBalanceamento(No no) {
+        return (no == null) ? 0 : altura(no.esq) - altura(no.dir);
+    }
+
+    public int max(int a, int b) {
+        return Math.max(a, b);
+    }
+
+    public No rotacaoSimplesDireita(No y) {
+        No x = y.esq;
+        No T2 = x.dir;
+
+        x.dir = y;
+        y.esq = T2;
+
+        y.altura = max(altura(y.esq), altura(y.dir)) + 1;
+        x.altura = max(altura(x.esq), altura(x.dir)) + 1;
+
+        return x;
+    }
+
+    public No rotacaoSimplesEsquerda(No x) {
+        No y = x.dir;
+        No T2 = y.esq;
+
+        y.esq = x;
+        x.dir = T2;
+
+        x.altura = max(altura(x.esq), altura(x.dir)) + 1;
+        y.altura = max(altura(y.esq), altura(y.dir)) + 1;
+
+        return y;
+    }
+
+    public No rotacaoDuplaParaDireita(No no) {
+        no.esq = rotacaoSimplesEsquerda(no.esq);
+        return rotacaoSimplesDireita(no);
+    }
+
+    public No rotacaoDuplaParaEsquerda(No no) {
+        no.dir = rotacaoSimplesDireita(no.dir);
+        return rotacaoSimplesEsquerda(no);
+    }
+
+    public No inserirAVL(No no, Long valor) {
+        if (no == null) {
+            No novo = new No();
+            novo.item = valor;
+            novo.altura = 1;
+            return novo;
+        }
+
+        if (valor < no.item)
+            no.esq = inserirAVL(no.esq, valor);
+        else if (valor > no.item)
+            no.dir = inserirAVL(no.dir, valor);
+        else
+            return no;
+
+        no.altura = 1 + max(altura(no.esq), altura(no.dir));
+
+        int fb = fatorBalanceamento(no);
+
+
+        if (fb > 1 && valor < no.esq.item)
+            return rotacaoSimplesDireita(no);
+
+
+        if (fb < -1 && valor > no.dir.item)
+            return rotacaoSimplesEsquerda(no);
+
+
+        if (fb > 1 && valor > no.esq.item)
+            return rotacaoDuplaParaDireita(no);
+
+
+        if (fb < -1 && valor < no.dir.item)
+            return rotacaoDuplaParaEsquerda(no);
+
+        return no;
+    }
+
+    public No copiar(No no) {
+        if (no == null) return null;
+
+        No novo = new No();
+        novo.item = no.item;
+        novo.altura = no.altura;
+
+        novo.esq = copiar(no.esq);
+        novo.dir = copiar(no.dir);
+
+        return novo;
+    }
 }
