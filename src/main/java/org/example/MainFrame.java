@@ -30,15 +30,12 @@ public class MainFrame extends JFrame {
         arvore = new Tree();
         undoStack = new Stack<>();
         redoStack = new Stack<>();
-        controlPanel = new JPanel();
 
         statusLabel = new JLabel("Executando balanceamento (Não é possiévl inserir números agora)...");
         statusLabel.setForeground(Color.YELLOW);
         statusLabel.setVisible(false);
         statusLabel.setHorizontalAlignment(SwingConstants.CENTER);
         statusLabel.setFont(new Font("Arial", Font.BOLD, 16));
-
-        controlPanel.add(statusLabel);
 
         setTitle("Visualização de Árvore Binária");
         setSize(1000, 700);
@@ -48,7 +45,7 @@ public class MainFrame extends JFrame {
 
         getContentPane().setBackground(new Color(30, 30, 30));
 
-        JPanel controlPanel = new JPanel();
+        controlPanel = new JPanel();
         controlPanel.setBackground(new Color(30, 30, 30));
 
         String[] opcoes = {"Árvore Binária de Busca", "Árvore Binária AVL"};
@@ -62,6 +59,11 @@ public class MainFrame extends JFrame {
                 opcoes,
                 opcoes[0]
         );
+
+        if (escolha == null) {
+            JOptionPane.showMessageDialog(this, "Você precisa escolher um tipo de árvore.");
+            System.exit(0);
+        }
 
         isAVL = escolha.equals("Árvore Binária AVL");
 
@@ -204,6 +206,8 @@ public class MainFrame extends JFrame {
                 animar(passos);
             } else {
                 arvore.inserir(valor);
+                panel.setRoot(arvore.root);
+                panel.revalidate();
                 panel.repaint();
             }
 
