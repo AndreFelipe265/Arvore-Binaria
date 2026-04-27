@@ -48,24 +48,7 @@ public class MainFrame extends JFrame {
         controlPanel = new JPanel();
         controlPanel.setBackground(new Color(30, 30, 30));
 
-        String[] opcoes = {"Árvore Binária de Busca", "Árvore Binária AVL"};
-
-        String escolha = (String) JOptionPane.showInputDialog(
-                this,
-                "Escolha o tipo de árvore:",
-                "Tipo",
-                JOptionPane.PLAIN_MESSAGE,
-                null,
-                opcoes,
-                opcoes[0]
-        );
-
-        if (escolha == null) {
-            JOptionPane.showMessageDialog(this, "Você precisa escolher um tipo de árvore.");
-            System.exit(0);
-        }
-
-        isAVL = escolha.equals("Árvore Binária AVL");
+        escolherTipoArvore();
 
         inputField = new JTextField(10);
 
@@ -258,6 +241,10 @@ public class MainFrame extends JFrame {
                 emAnimacao = false;
                 setUIEnabled(true);
                 sairModoAnimacao();
+
+                SwingUtilities.invokeLater(() -> {
+                    inputField.requestFocusInWindow();
+                });
             }
         });
 
@@ -477,6 +464,18 @@ public class MainFrame extends JFrame {
         } else {
             outputArea.append("\nA árvore foi resetada.");
         }
+
+        int trocarTipo = JOptionPane.showConfirmDialog(
+                this,
+                "Deseja escolher outro tipo de árvore?",
+                "Alterar tipo",
+                JOptionPane.YES_NO_OPTION
+        );
+
+        if (trocarTipo == JOptionPane.YES_OPTION) {
+            escolherTipoArvore();
+            outputArea.append("\nTipo de árvore alterado.");
+        }
     }
 
     private void carregarArvore() {
@@ -619,5 +618,25 @@ public class MainFrame extends JFrame {
         }
     }
 
+    private void escolherTipoArvore() {
+        String[] opcoes = {"Árvore Binária de Busca", "Árvore Binária AVL"};
+
+        String escolha = (String) JOptionPane.showInputDialog(
+                this,
+                "Escolha o tipo de árvore:",
+                "Tipo",
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                opcoes,
+                opcoes[0]
+        );
+
+        if (escolha == null) {
+            JOptionPane.showMessageDialog(this, "Você precisa escolher um tipo de árvore.");
+            return;
+        }
+
+        isAVL = escolha.equals("Árvore Binária AVL");
+    }
 
 }
