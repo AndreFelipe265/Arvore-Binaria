@@ -31,8 +31,8 @@ public class MainFrame extends JFrame {
         undoStack = new Stack<>();
         redoStack = new Stack<>();
 
-        statusLabel = new JLabel("Executando balanceamento (Não é possiévl inserir números agora)...");
-        statusLabel.setForeground(Color.YELLOW);
+        statusLabel = new JLabel("Executando balanceamento, aguarde...");
+        statusLabel.setForeground(Color.ORANGE);
         statusLabel.setVisible(false);
         statusLabel.setHorizontalAlignment(SwingConstants.CENTER);
         statusLabel.setFont(new Font("Arial", Font.BOLD, 16));
