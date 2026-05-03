@@ -310,6 +310,7 @@ public class Tree {
     }
 
     public No rotacaoSimplesDireita(No y) {
+        System.out.println("-> Executando Rotação Simples à Direita no pivô: " + y.item);
         No x = y.esq;
         No T2 = x.dir;
 
@@ -323,6 +324,7 @@ public class Tree {
     }
 
     public No rotacaoSimplesEsquerda(No x) {
+        System.out.println("-> Executando Rotação Simples à Esquerda no pivô: " + x.item);
         No y = x.dir;
         No T2 = y.esq;
 
@@ -336,29 +338,42 @@ public class Tree {
     }
 
     public No rotacaoDuplaParaDireita(No no) {
+        System.out.println("-> Executando Rotação Dupla à Direita no pivô: " + no.item);
         no.esq = rotacaoSimplesEsquerda(no.esq);
         return rotacaoSimplesDireita(no);
     }
 
     public No rotacaoDuplaParaEsquerda(No no) {
+        System.out.println("-> Executando Rotação Dupla à Esquerda no pivô: " + no.item);
         no.dir = rotacaoSimplesDireita(no.dir);
         return rotacaoSimplesEsquerda(no);
     }
 
+    public void inserirAVL(Long valor) {
+        System.out.println("\n[Nó Inserido: " + valor + "]");
+        root = inserirAVL(root, valor);
+        System.out.println("[FIM DA INSERÇÃO] Árvore balanceada.\n");
+    }
+
     public No inserirAVL(No no, Long valor) {
         if (no == null) {
+            System.out.println("   - Nó nulo encontrado. Inserindo " + valor + " aqui.");
             No novo = new No();
             novo.item = valor;
             novo.altura = 1;
             return novo;
         }
 
-        if (valor < no.item)
+        if (valor < no.item) {
+            System.out.println("   - " + valor + " < " + no.item + ": Descendo à esquerda do nó " + no.item);
             no.esq = inserirAVL(no.esq, valor);
-        else if (valor > no.item)
+        } else if (valor > no.item) {
+            System.out.println("   - " + valor + " > " + no.item + ": Descendo à direita do nó " + no.item);
             no.dir = inserirAVL(no.dir, valor);
-        else
+        } else {
+            System.out.println("   - Valor " + valor + " já existe na árvore. Nenhuma alteração feita.");
             return no;
+        }
 
         no.altura = 1 + max(altura(no.esq), altura(no.dir));
 

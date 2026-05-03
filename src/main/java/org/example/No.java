@@ -18,4 +18,8 @@ public class No {
         return dir;
     }
 
+    @Override
+    public String toString() {
+        return "[Nó " + item + "]";
+    }
 }

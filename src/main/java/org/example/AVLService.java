@@ -14,14 +14,17 @@ public class AVLService {
     }
 
     public List<No> inserirComPassos(Long valor) {
+        System.out.println("\n[Nó Inserido: " + valor + "]");
         passos.clear();
 
         tree.root = inserirAVLComPassos(tree.root, valor);
+        System.out.println("[FIM DA INSERÇÃO] Árvore balanceada.\n");
         return passos;
     }
 
     private No inserirAVLComPassos(No no, Long valor) {
         if (no == null) {
+            System.out.println("   - Nó nulo encontrado. Inserindo " + valor + " aqui.");
             No novo = new No();
             novo.item = valor;
             novo.altura = 1;
@@ -32,10 +35,13 @@ public class AVLService {
         }
 
         if (valor < no.item) {
+            System.out.println("   - " + valor + " < " + no.item + ": Descendo à esquerda do nó " + no.item);
             no.esq = inserirAVLComPassos(no.esq, valor);
         } else if (valor > no.item) {
+            System.out.println("   - " + valor + " > " + no.item + ": Descendo à direita do nó " + no.item);
             no.dir = inserirAVLComPassos(no.dir, valor);
         } else {
+            System.out.println("   - Valor " + valor + " já existe na árvore. Nenhuma alteração feita.");
             return no;
         }
 
@@ -47,7 +53,7 @@ public class AVLService {
         int fb = tree.fatorBalanceamento(no);
 
         if (fb > 1 && valor < no.esq.item) {
-
+            System.out.println("   - Fator de balanceamento (" + fb + ") exige Rotação Simples à Direita.");
             passos.add(tree.copiar(tree.root));
 
             No novo = tree.rotacaoSimplesDireita(no);
@@ -56,7 +62,7 @@ public class AVLService {
 
             return novo;
         } else if (fb < -1 && valor > no.dir.item) {
-
+            System.out.println("   - Fator de balanceamento (" + fb + ") exige Rotação Simples à Esquerda.");
             passos.add(tree.copiar(tree.root));
 
             No novo = tree.rotacaoSimplesEsquerda(no);
@@ -65,6 +71,7 @@ public class AVLService {
 
             return novo;
         } else if (fb > 1 && valor > no.esq.item) {
+            System.out.println("   - Fator de balanceamento (" + fb + ") exige Rotação Dupla à Direita no pivô: " + no.item);
             passos.add(tree.copiar(tree.root));
 
             no.esq = tree.rotacaoSimplesEsquerda(no.esq);
@@ -77,7 +84,7 @@ public class AVLService {
 
             return novo;
         } else if (fb < -1 && valor < no.dir.item) {
-
+            System.out.println("   - Fator de balanceamento (" + fb + ") exige Rotação Dupla à Esquerda no pivô: " + no.item);
             passos.add(tree.copiar(tree.root));
 
             no.dir = tree.rotacaoSimplesDireita(no.dir);
