@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Stack;
 import java.util.List;
 
@@ -22,14 +23,16 @@ public class MainFrame extends JFrame {
     private JPanel controlPanel;
     private JLabel statusLabel;
     private boolean emAnimacao = false;
+    private List<String> historicoAVL;
 
-    private Stack<Tree> undoStack;
-    private Stack<Tree> redoStack;
+    private Stack<EstadoAplicacao> undoStack;
+    private Stack<EstadoAplicacao> redoStack;
 
     public MainFrame() {
         arvore = new Tree();
         undoStack = new Stack<>();
         redoStack = new Stack<>();
+        historicoAVL = new ArrayList<>();
 
         statusLabel = new JLabel("Executando balanceamento, aguarde...");
         statusLabel.setForeground(Color.ORANGE);
@@ -93,7 +96,7 @@ public class MainFrame extends JFrame {
         scrollPane = new JScrollPane(panel);
         add(scrollPane, BorderLayout.CENTER);
 
-        outputArea = new JTextArea(5, 30);
+        outputArea = new JTextArea(8, 30);
         outputArea.setEditable(false);
         outputArea.setBackground(new Color(43, 43, 43));
         outputArea.setForeground(Color.WHITE);
@@ -101,6 +104,7 @@ public class MainFrame extends JFrame {
 
         JScrollPane outputScroll = new JScrollPane(outputArea);
         outputScroll.getViewport().setBackground(new Color(43, 43, 43));
+        outputScroll.setPreferredSize(new Dimension(1000, 150));
 
         add(outputScroll, BorderLayout.SOUTH);
 
@@ -130,6 +134,7 @@ public class MainFrame extends JFrame {
     private void sairModoAnimacao() {
         controlPanel.setVisible(true);
         statusLabel.setVisible(false);
+        statusLabel.setText("Executando balanceamento, aguarde...");
     }
 
     private void inverterArvore() {
@@ -152,8 +157,18 @@ public class MainFrame extends JFrame {
     }
 
     private void salvarEstadoParaUndo() {
-        undoStack.push(arvore.copiar());
+        undoStack.push(criarEstadoAtual());
         redoStack.clear();
+    }
+
+    private EstadoAplicacao criarEstadoAtual() {
+        return new EstadoAplicacao(arvore.copiar(), historicoAVL);
+    }
+
+    private void aplicarEstado(EstadoAplicacao estado) {
+        arvore = estado.getArvore();
+        historicoAVL = new ArrayList<>(estado.getHistoricoAVL());
+        atualizarVisualizacao();
     }
 
     private void atualizarVisualizacao() {
@@ -185,8 +200,8 @@ public class MainFrame extends JFrame {
             salvarEstadoParaUndo();
             if (isAVL) {
                 AVLService avl = new AVLService(arvore);
-                List<No> passos = avl.inserirComPassos(valor);
-                animar(passos);
+                AVLService.ResultadoInsercao resultado = avl.inserirComPassos(valor);
+                animar(resultado);
             } else {
                 arvore.inserir(valor);
                 panel.setRoot(arvore.root);
@@ -209,7 +224,9 @@ public class MainFrame extends JFrame {
 
             inputField.setText("");
             inputField.requestFocus();
-            outputArea.setText("Número " + valor + " inserido com sucesso.");
+            if (!isAVL) {
+                outputArea.setText("Número " + valor + " inserido com sucesso.");
+            }
 
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Digite um número válido!");
@@ -218,25 +235,35 @@ public class MainFrame extends JFrame {
         }
     }
 
-    private void animar(List<No> passos) {
+    private void animar(AVLService.ResultadoInsercao resultado) {
+        List<AVLService.PassoAVL> passos = resultado.getPassos();
+
+        if (passos.isEmpty()) {
+            return;
+        }
 
         emAnimacao = true;
         setUIEnabled(false);
         entrarModoAnimacao();
 
         Timer timer = new Timer(1000, null);
+        timer.setInitialDelay(0);
 
         final int[] index = {0};
 
         timer.addActionListener(e -> {
             if (index[0] < passos.size()) {
-                panel.setRoot(passos.get(index[0]));
+                AVLService.PassoAVL passo = passos.get(index[0]);
+                panel.setRoot(passo.getRoot());
                 panel.repaint();
+                mostrarPassoAVL(passo);
+                timer.setDelay(passo.getTitulo().equals("Executando rotação") ? 2500 : 1000);
                 index[0]++;
             } else {
                 timer.stop();
                 panel.setRoot(arvore.root);
                 panel.repaint();
+                registrarHistoricoAVL(resultado.getLinhaHistorico());
 
                 emAnimacao = false;
                 setUIEnabled(true);
@@ -249,6 +276,67 @@ public class MainFrame extends JFrame {
         });
 
         timer.start();
+    }
+
+    private void mostrarPassoAVL(AVLService.PassoAVL passo) {
+        String fb = "FB(" + passo.getNoBalanceamento() + ")=" + passo.getFatorBalanceamento();
+        boolean temRotacao = !passo.getRotacao().equals("Nenhuma");
+        String rotacoesLabel;
+
+        if (passo.getTitulo().equals("Desbalanceamento encontrado")) {
+            rotacoesLabel = "Rotações necessárias: ";
+        } else if (passo.getTitulo().equals("Executando rotação")) {
+            rotacoesLabel = "Rotação em andamento: ";
+        } else {
+            rotacoesLabel = "Rotações feitas: ";
+        }
+
+        if (temRotacao) {
+            statusLabel.setText(passo.getTitulo() + " | " + passo.getRotacao());
+        } else {
+            statusLabel.setText(passo.getTitulo() + " | Sem rotação");
+        }
+
+        StringBuilder texto = new StringBuilder();
+        texto.append("Nó inserido: ").append(passo.getValorInserido()).append("\n");
+        texto.append("Posição de inserção: ").append(passo.getPosicaoInsercao()).append("\n");
+        texto.append(fb).append("\n");
+
+        if (temRotacao) {
+            texto.append("Tipo de rotação: ").append(passo.getRotacao()).append("\n");
+            texto.append(rotacoesLabel).append(passo.getRotacoesFeitas());
+        } else {
+            texto.append("Rotação: nenhuma");
+        }
+
+        outputArea.setText(texto.toString());
+    }
+
+    private void registrarHistoricoAVL(String linhaHistorico) {
+        if (linhaHistorico == null || linhaHistorico.isBlank()) {
+            return;
+        }
+
+        historicoAVL.add(linhaHistorico);
+        mostrarHistoricoAVL();
+    }
+
+    private void mostrarHistoricoAVL() {
+        if (historicoAVL.isEmpty()) {
+            outputArea.setText("Histórico AVL vazio.");
+            return;
+        }
+
+        StringBuilder sb = new StringBuilder("Histórico AVL\n");
+        for (int i = 0; i < historicoAVL.size(); i++) {
+            sb.append(historicoAVL.get(i));
+            if (i < historicoAVL.size() - 1) {
+                sb.append("\n\n");
+            }
+        }
+
+        outputArea.setText(sb.toString());
+        outputArea.setCaretPosition(outputArea.getDocument().getLength());
     }
 
     private void abrirMenuCaminhos() {
@@ -388,11 +476,14 @@ public class MainFrame extends JFrame {
             return;
         }
 
-        redoStack.push(arvore.copiar());
-        arvore = undoStack.pop();
+        redoStack.push(criarEstadoAtual());
+        aplicarEstado(undoStack.pop());
 
-        atualizarVisualizacao();
-        outputArea.setText("Última ação desfeita.");
+        if (isAVL) {
+            mostrarHistoricoAVL();
+        } else {
+            outputArea.setText("Última ação desfeita.");
+        }
     }
 
     private void refazer() {
@@ -401,11 +492,14 @@ public class MainFrame extends JFrame {
             return;
         }
 
-        undoStack.push(arvore.copiar());
-        arvore = redoStack.pop();
+        undoStack.push(criarEstadoAtual());
+        aplicarEstado(redoStack.pop());
 
-        atualizarVisualizacao();
-        outputArea.setText("Ação refeita.");
+        if (isAVL) {
+            mostrarHistoricoAVL();
+        } else {
+            outputArea.setText("Ação refeita.");
+        }
     }
 
     private void resetarArvore() {
@@ -457,6 +551,7 @@ public class MainFrame extends JFrame {
 
         salvarEstadoParaUndo();
         arvore.limpar();
+        historicoAVL.clear();
         atualizarVisualizacao();
 
         if (opcao == JOptionPane.NO_OPTION) {
@@ -501,6 +596,7 @@ public class MainFrame extends JFrame {
 
                 salvarEstadoParaUndo();
                 arvore.carregarParenteses(conteudo.toString());
+                historicoAVL.clear();
                 atualizarVisualizacao();
                 
                 outputArea.setText("Árvore carregada com sucesso de: " + arquivo.getName());
@@ -615,6 +711,24 @@ public class MainFrame extends JFrame {
             JOptionPane.showMessageDialog(this,
                     "Erro ao salvar arquivo de parênteses: " + e.getMessage());
             return false;
+        }
+    }
+
+    private static class EstadoAplicacao {
+        private final Tree arvore;
+        private final List<String> historicoAVL;
+
+        private EstadoAplicacao(Tree arvore, List<String> historicoAVL) {
+            this.arvore = arvore;
+            this.historicoAVL = new ArrayList<>(historicoAVL);
+        }
+
+        private Tree getArvore() {
+            return arvore;
+        }
+
+        private List<String> getHistoricoAVL() {
+            return historicoAVL;
         }
     }
 
