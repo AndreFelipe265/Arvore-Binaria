@@ -257,7 +257,7 @@ public class MainFrame extends JFrame {
                 panel.setRoot(passo.getRoot());
                 panel.repaint();
                 mostrarPassoAVL(passo);
-                timer.setDelay(passo.getTitulo().equals("Executando rotação") ? 2500 : 1000);
+                timer.setDelay(isPassoRotacao(passo) ? 2500 : 1200);
                 index[0]++;
             } else {
                 timer.stop();
@@ -279,13 +279,13 @@ public class MainFrame extends JFrame {
     }
 
     private void mostrarPassoAVL(AVLService.PassoAVL passo) {
-        String fb = "FB(" + passo.getNoBalanceamento() + ")=" + passo.getFatorBalanceamento();
+        String fb = formatarNoPivo(passo);
         boolean temRotacao = !passo.getRotacao().equals("Nenhuma");
         String rotacoesLabel;
 
         if (passo.getTitulo().equals("Desbalanceamento encontrado")) {
             rotacoesLabel = "Rotações necessárias: ";
-        } else if (passo.getTitulo().equals("Executando rotação")) {
+        } else if (passo.getTitulo().startsWith("Executando rotação")) {
             rotacoesLabel = "Rotação em andamento: ";
         } else {
             rotacoesLabel = "Rotações feitas: ";
@@ -310,6 +310,24 @@ public class MainFrame extends JFrame {
         }
 
         outputArea.setText(texto.toString());
+    }
+
+    private boolean isPassoRotacao(AVLService.PassoAVL passo) {
+        String titulo = passo.getTitulo();
+        return titulo.startsWith("Executando rotação")
+                || titulo.startsWith("Rotação");
+    }
+
+    private String formatarNoPivo(AVLService.PassoAVL passo) {
+        if (passo.getRotacao().equals("Nenhuma")) {
+            return "Balanceado";
+        }
+
+        int fatorBalanceamento = passo.getFatorBalanceamento();
+        String sinal = fatorBalanceamento > 0 ? "+" : "";
+
+        return "Nó " + passo.getNoBalanceamento() + " pivô, FB = "
+                + sinal + fatorBalanceamento;
     }
 
     private void registrarHistoricoAVL(String linhaHistorico) {

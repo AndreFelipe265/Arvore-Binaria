@@ -84,11 +84,23 @@ public class AVLService {
         String rotacoesFeitas = descreverRotacoes(tipoRotacao, balanceamento.no);
         adicionarPasso("Desbalanceamento encontrado", valor, caminhoTexto, posicaoInsercao,
                 tipoRotacao, rotacoesFeitas, balanceamento.no.item, balanceamento.fator);
-        adicionarPasso("Executando rotação", valor, caminhoTexto, posicaoInsercao,
-                tipoRotacao, rotacoesFeitas, balanceamento.no.item, balanceamento.fator);
+        No novaRaizSubarvore;
+        if (isRotacaoDupla(tipoRotacao)) {
+            novaRaizSubarvore = aplicarRotacaoDuplaComPassos(
+                    balanceamento,
+                    tipoRotacao,
+                    caminhoNos,
+                    valor,
+                    caminhoTexto,
+                    posicaoInsercao
+            );
+        } else {
+            adicionarPasso("Executando rotação", valor, caminhoTexto, posicaoInsercao,
+                    tipoRotacao, rotacoesFeitas, balanceamento.no.item, balanceamento.fator);
 
-        No novaRaizSubarvore = aplicarRotacao(balanceamento.no, tipoRotacao);
-        conectarSubarvoreRotacionada(caminhoNos, balanceamento.indice, novaRaizSubarvore);
+            novaRaizSubarvore = aplicarRotacao(balanceamento.no, tipoRotacao);
+            conectarSubarvoreRotacionada(caminhoNos, balanceamento.indice, novaRaizSubarvore);
+        }
         atualizarAlturasAcima(caminhoNos, balanceamento.indice);
 
         adicionarPasso("Rotação aplicada", valor, caminhoTexto, posicaoInsercao,
@@ -184,6 +196,66 @@ public class AVLService {
         };
     }
 
+    private boolean isRotacaoDupla(TipoRotacao tipoRotacao) {
+        return tipoRotacao == TipoRotacao.DUPLA_DIREITA
+                || tipoRotacao == TipoRotacao.DUPLA_ESQUERDA;
+    }
+
+    private No aplicarRotacaoDuplaComPassos(Balanceamento balanceamento,
+                                            TipoRotacao tipoRotacao,
+                                            List<No> caminhoNos,
+                                            Long valor,
+                                            String caminho,
+                                            String posicaoInsercao) {
+        No no = balanceamento.no;
+
+        if (tipoRotacao == TipoRotacao.DUPLA_DIREITA) {
+            String primeiraRotacao = descreverRotacaoSimples(TipoRotacao.SIMPLES_ESQUERDA, no.esq);
+            adicionarPasso("Executando rotação 1/2", valor, caminho, posicaoInsercao,
+                    tipoRotacao, primeiraRotacao, no.esq.item, tree.fatorBalanceamento(no.esq));
+
+            no.esq = tree.rotacaoSimplesEsquerda(no.esq);
+            recalcularAlturas(tree.root);
+
+            adicionarPasso("Rotação 1/2 aplicada", valor, caminho, posicaoInsercao,
+                    tipoRotacao, primeiraRotacao, no.esq.item, tree.fatorBalanceamento(no.esq));
+
+            String segundaRotacao = descreverRotacaoSimples(TipoRotacao.SIMPLES_DIREITA, no);
+            adicionarPasso("Executando rotação 2/2", valor, caminho, posicaoInsercao,
+                    tipoRotacao, segundaRotacao, no.item, tree.fatorBalanceamento(no));
+
+            No novaRaiz = tree.rotacaoSimplesDireita(no);
+            conectarSubarvoreRotacionada(caminhoNos, balanceamento.indice, novaRaiz);
+            return novaRaiz;
+        }
+
+        String primeiraRotacao = descreverRotacaoSimples(TipoRotacao.SIMPLES_DIREITA, no.dir);
+        adicionarPasso("Executando rotação 1/2", valor, caminho, posicaoInsercao,
+                tipoRotacao, primeiraRotacao, no.dir.item, tree.fatorBalanceamento(no.dir));
+
+        no.dir = tree.rotacaoSimplesDireita(no.dir);
+        recalcularAlturas(tree.root);
+
+        adicionarPasso("Rotação 1/2 aplicada", valor, caminho, posicaoInsercao,
+                tipoRotacao, primeiraRotacao, no.dir.item, tree.fatorBalanceamento(no.dir));
+
+        String segundaRotacao = descreverRotacaoSimples(TipoRotacao.SIMPLES_ESQUERDA, no);
+        adicionarPasso("Executando rotação 2/2", valor, caminho, posicaoInsercao,
+                tipoRotacao, segundaRotacao, no.item, tree.fatorBalanceamento(no));
+
+        No novaRaiz = tree.rotacaoSimplesEsquerda(no);
+        conectarSubarvoreRotacionada(caminhoNos, balanceamento.indice, novaRaiz);
+        return novaRaiz;
+    }
+
+    private String descreverRotacaoSimples(TipoRotacao tipoRotacao, No no) {
+        return switch (tipoRotacao) {
+            case SIMPLES_DIREITA -> "girou a subárvore do nó " + no.item + " para a direita";
+            case SIMPLES_ESQUERDA -> "girou a subárvore do nó " + no.item + " para a esquerda";
+            default -> "nenhuma";
+        };
+    }
+
     private String descreverRotacoes(TipoRotacao tipoRotacao, No no) {
         return switch (tipoRotacao) {
             case SIMPLES_DIREITA -> "girou a subárvore do nó " + no.item + " para a direita";
@@ -232,19 +304,24 @@ public class AVLService {
                                        Long noBalanceamento, int fatorBalanceamento,
                                        String tipoRotacao,
                                        String rotacoesFeitas) {
-        String balanceamento = "FB(" + noBalanceamento + ")=" + fatorBalanceamento;
-
         if (rotacoesFeitas.equals("nenhuma")) {
             return "Nó " + valor + " inserido.\n"
                     + "Posição de inserção: " + posicaoInsercao + ".\n"
-                    + "Balanceamento: " + balanceamento + ".\n"
+                    + "Balanceamento: balanceado.\n"
                     + "Rotação: nenhuma.";
         }
+
+        String balanceamento = formatarNoPivo(noBalanceamento, fatorBalanceamento);
 
         return "Nó " + valor + " inserido.\n"
                 + "Posição de inserção: " + posicaoInsercao + ".\n"
                 + "Balanceamento: " + balanceamento + ".\n"
                 + "Rotação: " + tipoRotacao + " - " + rotacoesFeitas + ".";
+    }
+
+    private String formatarNoPivo(Long noBalanceamento, int fatorBalanceamento) {
+        String sinal = fatorBalanceamento > 0 ? "+" : "";
+        return "Nó " + noBalanceamento + " pivô, FB = " + sinal + fatorBalanceamento;
     }
 
     private String formatarCaminho(List<Long> caminho) {
