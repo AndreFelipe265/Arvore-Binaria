@@ -545,6 +545,7 @@ public class MainFrame extends JFrame {
             }
 
             salvarParentesesArquivo(arquivoImagem);
+            salvarHistoricoAVLTxt(arquivoImagem);
 
             String tipo = arvore.obterTipoArvore();
 
@@ -728,6 +729,66 @@ public class MainFrame extends JFrame {
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this,
                     "Erro ao salvar arquivo de parênteses: " + e.getMessage());
+            return false;
+        }
+    }
+
+    private boolean salvarHistoricoAVLArquivo(File arquivoImagem) {
+        if (!isAVL || historicoAVL.isEmpty()) {
+            return true;
+        }
+
+        try {
+            String nome = arquivoImagem.getName();
+            String nomeBase = nome.substring(0, nome.lastIndexOf('.'));
+            File arquivoTxt = new File(arquivoImagem.getParentFile(), nomeBase + "_historico_avl.txt");
+
+            StringBuilder conteudo = new StringBuilder("HistÃ³rico AVL\n\n");
+            for (int i = 0; i < historicoAVL.size(); i++) {
+                conteudo.append(historicoAVL.get(i));
+                if (i < historicoAVL.size() - 1) {
+                    conteudo.append("\n\n");
+                }
+            }
+
+            java.io.FileWriter writer = new java.io.FileWriter(arquivoTxt);
+            writer.write(conteudo.toString());
+            writer.close();
+
+            return true;
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this,
+                    "Erro ao salvar histÃ³rico AVL: " + e.getMessage());
+            return false;
+        }
+    }
+
+    private boolean salvarHistoricoAVLTxt(File arquivoImagem) {
+        if (!isAVL || historicoAVL.isEmpty()) {
+            return true;
+        }
+
+        try {
+            String nome = arquivoImagem.getName();
+            String nomeBase = nome.substring(0, nome.lastIndexOf('.'));
+            File arquivoTxt = new File(arquivoImagem.getParentFile(), nomeBase + "_historico_avl.txt");
+
+            StringBuilder conteudo = new StringBuilder("Hist\u00F3rico AVL\n\n");
+            for (int i = 0; i < historicoAVL.size(); i++) {
+                conteudo.append(historicoAVL.get(i));
+                if (i < historicoAVL.size() - 1) {
+                    conteudo.append("\n\n");
+                }
+            }
+
+            java.io.FileWriter writer = new java.io.FileWriter(arquivoTxt);
+            writer.write(conteudo.toString());
+            writer.close();
+
+            return true;
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this,
+                    "Erro ao salvar hist\u00F3rico AVL: " + e.getMessage());
             return false;
         }
     }
